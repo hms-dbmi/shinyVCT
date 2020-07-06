@@ -1,0 +1,38 @@
+html, body, .fillParent {
+    width: 100%;
+    overflow: hidden;
+    heigth:100%;
+    -moz-transform: scale(1.2, 1.2); /* Moz-browsers */
+    zoom: 1.2; /* Other non-webkit browsers */
+    zoom: 120%; /* Webkit browsers */
+}
+
+body {
+
+}
+#myCustomNavbar
+{
+  min-height:32px !important
+}
+
+#myCustomNavbar ul 
+{
+     display: table;
+   
+} 
+
+#myCustomNavbar > ul > li
+{
+    width: 75px !important;
+    display: inline-block;
+    display: table-cell;
+
+} 
+
+img {
+  display: block;
+  max-width:80%;
+  max-height:100%;
+  width: auto;
+  height: auto;
+}
