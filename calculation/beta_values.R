@@ -62,7 +62,7 @@ compare_chance = function(risk, value, cpt){
 
 calculate_risk(format_inputs(52235, 40, 3, 1, 3, 1, "Orthopedics", "UTI"))
 risk = c("Respiratory", "Infection", "UTI", "VTE", "Cardiac", "Renal", "Stroke")
-discharge = c("Death30Day", "Unplannedreadmission", "NotHome")
+discharge = c("Death30Day", "NotHome")
 risk_name_dictionary = hash()
 risk_name_dictionary[["Respiratory"]] = "Respiratory Complications"
 risk_name_dictionary[["Infection"]] = "Infection"
@@ -71,6 +71,7 @@ risk_name_dictionary[["VTE"]] = "Venous thromboembolism"
 risk_name_dictionary[["Cardiac"]] = "Cardiac Complications"
 risk_name_dictionary[["Renal"]] = "Renal Complications"
 risk_name_dictionary[["Stroke"]] = "Stroke Complications"
+
 
 
 make_risk_df = function(cpt, age, asa_class, emergency, fn_status, in_out, spec){
@@ -85,4 +86,16 @@ make_risk_df = function(cpt, age, asa_class, emergency, fn_status, in_out, spec)
   events_df[["V3"]] = as.numeric(as.character(events_df[["V3"]]))
   events_df <- events_df[order(-events_df$V3),]
   return (events_df)
+}
+
+make_discharge_list = function(cpt, age, asa_class, emergency, fn_status, in_out, spec){
+  events <- c()
+  tot = 0
+  for (x in discharge){
+    value = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, x))
+    tot = tot+value
+    events=  c(value, events)
+  }
+  events = c(1-tot, events)
+  return (events)
 }

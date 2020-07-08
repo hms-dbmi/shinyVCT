@@ -60,9 +60,9 @@ ui <- fluidPage(
   ),
   
   # single-output stub ui
-  withSpinner(type = 7, color = "#2BBBAD", uiOutput("uiStub")),
+  withSpinner(type = 8, color = "#2BBBAD", uiOutput("uiStub")),
   
-
+  
 )
 
 #List of all the operations
@@ -77,15 +77,15 @@ valid_operations =  list(
 
 #List of all the specialities
 valid_specialities =  list(
-  "Please Select One" = 0, 
+  "Please Select One" = 0,
   "Gynecology" = "Gynecology",
   "Neurosurgery" = "Neurosurgery",
   "Orthopedics" = "Orthopedics",
   "Otolaryngology (ENT)" = "Otolaryngology (ENT)",
   "Plastics" = "Plastics",
   "Thoracic" = "Thoracic",
-  "Urology" = "Urology", 
-  "Vascular"= "Vascular"
+  "Urology" = "Urology",
+  "Vascular" = "Vascular"
 )
 
 #all inputs required to create a Risk Dataframe
@@ -108,23 +108,33 @@ bar_strength_cutoffs <- c(0, .01, .10, .20, .30, .50)
 events_df = NULL
 chosen_risk  = NULL
 high_risk = NULL
-selected_events_df= NULL
+selected_events_df = NULL
+discharge_data = NULL
 
-create_param_list <- function(input_df, waffle_func) {
-  arrow_cuttoffs <- c(0.05, 0.25, 0.5, 0.75)
-  destination_vals = c(0.9, 0.09, 0.01)
-  locations <- c('top', 'middle', 'bot')
-  input_df$V3 = input_df$V3 * 100
-  arrow_locs <- c()
-  params <- list(event_data = input_df,
-                 plot_func =  waffle_func)
-  for (i in 1:3) {
-    arrow = paste("New Images/", locations[i], max(which(arrow_cuttoffs <= destination_vals[i]), 0) + 1,
-                  ".png", sep = "")
-    params[[paste(locations[i], "_arrow", sep = "")]] <- arrow
+create_param_list <-
+  function(input_df,
+           destination_vals,
+           risk_inputs,
+           waffle_func) {
+    arrow_cuttoffs <- c(0.05, 0.25, 0.5, 0.75)
+    locations <- c('top', 'middle', 'bot')
+    input_df$V3 = input_df$V3 * 100
+    arrow_locs <- c()
+    params <- list(
+      event_data = input_df,
+      plot_func =  waffle_func,
+      destination_home = destination_vals[1] * 100,
+      destination_readmit = destination_vals[2] * 100,
+      destination_death = destination_vals[3] * 100,
+      CPT = risk_inputs[["cpt"]]
+    )
+    for (i in 1:3) {
+      arrow = paste("New Images/", locations[i], max(which(arrow_cuttoffs <= destination_vals[i]), 0) + 1,
+                    ".png", sep = "")
+      params[[paste(locations[i], "_arrow", sep = "")]] <- arrow
+    }
+    return(params)
   }
-  return(params)
-}
 
 #Development of Waffle Plot
 create_waffle_plot <- function (input_val) {
@@ -174,7 +184,7 @@ create_lollipop <- function (events_df) {
   lolli_y <- c()
   lolli_x <- c()
   for (i in 1:nrow(events_df)) {
-    row <- events_df[i, ]
+    row <- events_df[i,]
     lolli_x  = c(lolli_x, as.character(row[["V1"]]))
     lolli_y  = c(lolli_y, log10(as.numeric(row[["V3"]])))
     
@@ -241,7 +251,7 @@ server <- function(input, output, session) {
         fluidRow(
           column(12,
                  uiOutput("pageStub"))
-        ),)))
+        ), )))
   
   
   
@@ -269,28 +279,59 @@ server <- function(input, output, session) {
   # print the URL for this session
   cat(paste0("Session filename: ", fname, ".\n"))
   
-  if(fname == "r_pages/graph_view.R" ){
-    rmarkdown::render("pdf_creation/download_handler.Rmd", 
-                      output_dir = temp_folder,
-                      output_file = "rendered_report.pdf", 
-                      params = create_param_list(selected_events_df, create_waffle_plot)
-    )
-
-    bitmap <- pdf_render_page(paste(temp_folder,"/rendered_report.pdf", sep = "") , page = 1, dpi = 300)
-    png::writePNG(bitmap, paste(temp_folder,"/rendered_pic.png", sep = ""))
-
+  if (fname == "r_pages/graph_view.R") {
+    if (is.null(risk_inputs[["cpt"]]) || is.null(risk_inputs[["asa"]])) {
+      fname = "?home"
+    } else{
+      rmarkdown::render(
+        "pdf_creation/download_handler.Rmd",
+        output_dir = temp_folder,
+        output_file = "rendered_report.pdf",
+        params = create_param_list(
+          selected_events_df,
+          discharge_data,
+          risk_inputs,
+          create_waffle_plot
+        )
+      )
+      
+      bitmap <-
+        pdf_render_page(
+          paste(temp_folder, "/rendered_report.pdf", sep = "") ,
+          page = 1,
+          dpi = 300
+        )
+      png::writePNG(bitmap, paste(temp_folder, "/rendered_pic.png", sep = ""))
+    }
   }
-
-  if(fname == "r_pages/complications_single_col.R" ){
-    events_df <<- make_risk_df(risk_inputs[["cpt"]],
-                               risk_inputs[["age"]],
-                               risk_inputs[["asa"]],
-                               risk_inputs[["emer"]],
-                               risk_inputs[["func"]],
-                               risk_inputs[["inout"]],
-                               risk_inputs[["spec"]])
-    chosen_risk  <<- as.vector(events_df[seq(4, nrow(events_df)),][['V1']])
-    high_risk <<- as.vector(events_df[seq(1, 3),][['V1']])
+  
+  if (fname == "r_pages/complications_single_col.R") {
+    if (is.null(risk_inputs[["cpt"]]) || is.null(risk_inputs[["asa"]])) {
+      fname = "?home"
+    } else{
+      events_df <<- make_risk_df(
+        risk_inputs[["cpt"]],
+        risk_inputs[["age"]],
+        risk_inputs[["asa"]],
+        risk_inputs[["emer"]],
+        risk_inputs[["func"]],
+        risk_inputs[["inout"]],
+        risk_inputs[["spec"]]
+      )
+      discharge_data <<- make_discharge_list(
+        risk_inputs[["cpt"]],
+        risk_inputs[["age"]],
+        risk_inputs[["asa"]],
+        risk_inputs[["emer"]],
+        risk_inputs[["func"]],
+        risk_inputs[["inout"]],
+        risk_inputs[["spec"]]
+      )
+      print(discharge_data)
+      chosen_risk  <<-
+        as.vector(events_df[seq(4, nrow(events_df)), ][['V1']])
+      high_risk <<- as.vector(events_df[seq(1, 3), ][['V1']])
+    }
   }
   
   # is that one of our files?
@@ -298,10 +339,18 @@ server <- function(input, output, session) {
     output$pageStub <-
       renderUI(tagList(# 404 if no file with that name
         fluidRow(column(
-          5,
+          12,
           HTML(
             "<h2>404 Not Found Error:</h2><p>That URL doesn't exist. Use the",
             "menu above to navigate to the page you were looking for.</p>"
+          ),
+          column(12, align = "center", div(
+            id = "to_graph", tags$a(
+              h4("Return to Home",  class = "btn btn-default btn-info",
+                 style = "fontweight:600"),
+              href = "?home"
+            )
+          )
           )
         ))))
     return()    # to prevent a "file not found" error on the next line after a 404 error
@@ -311,7 +360,11 @@ server <- function(input, output, session) {
   
   
   output$img1 <- renderImage({
-    list(src = paste(temp_folder,"/rendered_pic.png", sep = ""), width = "100%", height= "auto")
+    list(
+      src = paste(temp_folder, "/rendered_pic.png", sep = ""),
+      width = "100%",
+      height = "auto"
+    )
   })
   output$dot_array_1 <-
     renderPlot({
@@ -339,18 +392,18 @@ server <- function(input, output, session) {
     }, height = 100, width = 100)
   output$lollipop <-
     renderPlot({
-      create_lollipop(events_df[1:3, ])
+      create_lollipop(events_df[1:3,])
     }, height = 200)
   output$lollipop_small <-
     renderPlot({
-      create_lollipop(events_df[4:6, ])
+      create_lollipop(events_df[4:6,])
     }, height = 75)
   output$lollipop_secondary <-
     renderPlot({
-      create_lollipop(events_df[4:6, ])
+      create_lollipop(events_df[4:6,])
     }, height = 200)
   
-
+  
   observe({
     if (is.null(input$asa_status) ||
         input$asa_status == 0 ||
@@ -368,14 +421,18 @@ server <- function(input, output, session) {
     if ((length(x) + length(y)) == 3 ||
         (length(x) + length(y)) == 0) {
       inputs_of_interest = high_risk
-      if(length(x) + length(y) == 3){
-        for (index in x){
+      if (length(x) + length(y) == 3) {
+        for (index in x) {
           inputs_of_interest = c(inputs_of_interest, chosen_risk[as.numeric(index)])
         }
-      }else{
-        inputs_of_interest = c(inputs_of_interest, chosen_risk[1], chosen_risk[2], chosen_risk[3])
+      } else{
+        inputs_of_interest = c(inputs_of_interest,
+                               chosen_risk[1],
+                               chosen_risk[2],
+                               chosen_risk[3])
       }
-      selected_events_df<<- events_df[events_df$V1 %in% inputs_of_interest,]
+      selected_events_df <<-
+        events_df[events_df$V1 %in% inputs_of_interest, ]
       shinyjs::showElement(id = "to_graph")
     } else{
       shinyjs::hideElement(id = "to_graph")
@@ -383,10 +440,10 @@ server <- function(input, output, session) {
   })
   
   observe({
-    if (!is.null(input$procedure)){
+    if (!is.null(input$procedure)) {
       risk_inputs[["cpt"]] <<- input$procedure
     }
-    if(!is.null(input$asa_status) && input$asa_status != 0){
+    if (!is.null(input$asa_status) && input$asa_status != 0) {
       risk_inputs[["age"]] <<- input$age
       risk_inputs[["asa"]] <<- input$asa_status
       risk_inputs[["func"]] <<- input$func_status
@@ -399,8 +456,15 @@ server <- function(input, output, session) {
   output$downloadData <- downloadHandler(
     filename = "rendered_report.pdf",
     content = function(file) {
-      res <- rmarkdown::render("pdf_creation/download_handler.Rmd",
-                               params = create_param_list(selected_events_df, create_waffle_plot))
+      res <- rmarkdown::render(
+        "pdf_creation/download_handler.Rmd",
+        params = create_param_list(
+          selected_events_df,
+          discharge_data,
+          risk_inputs,
+          create_waffle_plot
+        )
+      )
       file.rename(res, file)
     }
   )
