@@ -7,7 +7,7 @@ library(Cairo)
 library(png)
 library(pdftools)
 library(shinycssloaders)
-
+source("calculation/beta_values.R")
 
 
 # put a message in console or server log; note this happens only when the app is started!
@@ -62,45 +62,53 @@ ui <- fluidPage(
   # single-output stub ui
   withSpinner(type = 7, color = "#2BBBAD", uiOutput("uiStub")),
   
-  #Download Button (Will be reposistioned)
-  downloadButton('downloadData', 'Download data'),
+
 )
 
 #List of all the operations
 valid_operations =  list(
-  "55866 - Minimally Invasive Radical Prostatectomy" = 1,
-  "38571 - Minimally Invasive Radical Prostatectomy with Lymph Node Dissection" = 2,
-  "50543 - Minimally Invasive Partial Nephrectomy" = 3,
-  "52234 - Transurethral Resection of Bladder Tumor of <2 cm" = 4,
-  "52235 - Transurethral Resection of Bladder Tumor of 2-5 cm" = 5,
-  "52240 - Transurethral Resection of Bladder Tumor of >5 cm" = 6
+  "55866 - Minimally Invasive Radical Prostatectomy" = 55866,
+  "38571 - Minimally Invasive Radical Prostatectomy with Lymph Node Dissection" = 38571,
+  "50543 - Minimally Invasive Partial Nephrectomy" = 50543,
+  "52234 - Transurethral Resection of Bladder Tumor of <2 cm" = 52234,
+  "52235 - Transurethral Resection of Bladder Tumor of 2-5 cm" = 52235,
+  "52240 - Transurethral Resection of Bladder Tumor of >5 cm" = 52240
 )
+
+#List of all the specialities
+valid_specialities =  list(
+  "Please Select One" = 0, 
+  "Gynecology" = "Gynecology",
+  "Neurosurgery" = "Neurosurgery",
+  "Orthopedics" = "Orthopedics",
+  "Otolaryngology (ENT)" = "Otolaryngology (ENT)",
+  "Plastics" = "Plastics",
+  "Thoracic" = "Thoracic",
+  "Urology" = "Urology", 
+  "Vascular"= "Vascular"
+)
+
+#all inputs required to create a Risk Dataframe
+risk_inputs = hash()
+risk_inputs[["cpt"]] = NULL
+risk_inputs[["age"]] = NULL
+risk_inputs[["asa"]] = NULL
+risk_inputs[["func"]] = NULL
+risk_inputs[["inout"]] = NULL
+risk_inputs[["emer"]] = NULL
+risk_inputs[["spec"]] = NULL
+
+
 
 
 #the bar_strength values
 bar_strength_cutoffs <- c(0, .01, .10, .20, .30, .50)
 
 #An inital df for all the events
-events <- c()
-events[[1]] <- c("Pulmonary Complications", "Above Average", 0.125)
-events[[2]] <- c("Mortality ", "Above Average", 0.091)
-events[[3]] <- c("Cardiac Complications", "Average", 0.068)
-events[[4]] <-
-  c("Renal (Kidney) complications", "Above Average", 0.03)
-events[[5]] <- c("Stroke complications", "Average", 0.028)
-events[[6]] <- c("Urinary Tract Infection", "Below Average", 0.002)
-events[[7]] <-
-  c("Bleeding or transfusion Complications", "Average", 0.001)
-events[[8]] <- c("Risk of Infection", "Average", 0.001)
-events[[9]] <- c("Venous thromboembolism", "Average", 0.001)
-events_df = as.data.frame(do.call(rbind, events))
-events_df[["V3"]] = as.numeric(as.character(events_df[["V3"]]))
-
-chosen_risk  = as.vector(events_df[seq(4, nrow(events_df)),][['V1']])
-chosen_risk_1 = as.list(split(chosen_risk, c(1, 2))[1])[[1]]
-chosen_risk_2  = as.list(split(chosen_risk, c(1, 2))[2])[[1]]
-high_risk = as.vector(events_df[seq(1, 3),][['V1']])
-
+events_df = NULL
+chosen_risk  = NULL
+high_risk = NULL
+selected_events_df= NULL
 
 create_param_list <- function(input_df, waffle_func) {
   arrow_cuttoffs <- c(0.05, 0.25, 0.5, 0.75)
@@ -115,7 +123,6 @@ create_param_list <- function(input_df, waffle_func) {
                   ".png", sep = "")
     params[[paste(locations[i], "_arrow", sep = "")]] <- arrow
   }
-  print(params)
   return(params)
 }
 
@@ -173,7 +180,6 @@ create_lollipop <- function (events_df) {
     
   }
   lolli_df = data.frame(lolli_x, lolli_y)
-  print(lolli_x)
   ggplot(lolli_df, aes(x = lolli_x, y = lolli_y)) +
     geom_segment(
       aes(
@@ -210,12 +216,6 @@ create_lollipop <- function (events_df) {
     scale_x_discrete(labels = addline_format(lolli_x))
 }
 
-bars_filled = c()
-for (x in events) {
-  bars_filled = c(bars_filled, paste("bar_imgs/bar", max(
-    which(bar_strength_cutoffs <= as.numeric(x[3])) - 1
-  ), ".png", sep = ""))
-}
 
 get_bar_img <- function(value) {
   return (paste("bar_imgs/bar", max(
@@ -273,20 +273,26 @@ server <- function(input, output, session) {
     rmarkdown::render("pdf_creation/download_handler.Rmd", 
                       output_dir = temp_folder,
                       output_file = "rendered_report.pdf", 
-                      params = create_param_list(events_df, create_waffle_plot)
+                      params = create_param_list(selected_events_df, create_waffle_plot)
     )
 
     bitmap <- pdf_render_page(paste(temp_folder,"/rendered_report.pdf", sep = "") , page = 1, dpi = 300)
     png::writePNG(bitmap, paste(temp_folder,"/rendered_pic.png", sep = ""))
-    #png::writePNG(bitmap,"temp.png")
-    print(list.files(path =temp_folder))
-    
+
+  }
+
+  if(fname == "r_pages/complications_single_col.R" ){
+    events_df <<- make_risk_df(risk_inputs[["cpt"]],
+                               risk_inputs[["age"]],
+                               risk_inputs[["asa"]],
+                               risk_inputs[["emer"]],
+                               risk_inputs[["func"]],
+                               risk_inputs[["inout"]],
+                               risk_inputs[["spec"]])
+    chosen_risk  <<- as.vector(events_df[seq(4, nrow(events_df)),][['V1']])
+    high_risk <<- as.vector(events_df[seq(1, 3),][['V1']])
   }
   
-  output$img1 <- renderImage({
-    list(src = paste(temp_folder,"/rendered_pic.png", sep = ""), width = "100%", height= "auto")
-    
-  })
   # is that one of our files?
   if (!fname %in% validFiles) {
     output$pageStub <-
@@ -304,7 +310,9 @@ server <- function(input, output, session) {
   
   
   
-  print(create_waffle_plot(events_df[["V3"]][1]))
+  output$img1 <- renderImage({
+    list(src = paste(temp_folder,"/rendered_pic.png", sep = ""), width = "100%", height= "auto")
+  })
   output$dot_array_1 <-
     renderPlot({
       create_waffle_plot(as.numeric(events_df[["V3"]][1]) * 100)
@@ -342,36 +350,57 @@ server <- function(input, output, session) {
       create_lollipop(events_df[4:6, ])
     }, height = 200)
   
-  
+
   observe({
     if (is.null(input$asa_status) ||
-        input$asa_status == 1 ||
-        input$surg_spec == 1) {
+        input$asa_status == 0 ||
+        input$surg_spec == 0) {
       shinyjs::hideElement(id = "to_user")
     }
     else{
       shinyjs::showElement(id = "to_user")
     }
   })
+  
   observe({
     x = input$user_chosen_risk_1
     y = input$user_chosen_risk_2
     if ((length(x) + length(y)) == 3 ||
         (length(x) + length(y)) == 0) {
+      inputs_of_interest = high_risk
+      if(length(x) + length(y) == 3){
+        for (index in x){
+          inputs_of_interest = c(inputs_of_interest, chosen_risk[as.numeric(index)])
+        }
+      }else{
+        inputs_of_interest = c(inputs_of_interest, chosen_risk[1], chosen_risk[2], chosen_risk[3])
+      }
+      selected_events_df<<- events_df[events_df$V1 %in% inputs_of_interest,]
       shinyjs::showElement(id = "to_graph")
     } else{
       shinyjs::hideElement(id = "to_graph")
     }
-    
   })
   
+  observe({
+    if (!is.null(input$procedure)){
+      risk_inputs[["cpt"]] <<- input$procedure
+    }
+    if(!is.null(input$asa_status) && input$asa_status != 0){
+      risk_inputs[["age"]] <<- input$age
+      risk_inputs[["asa"]] <<- input$asa_status
+      risk_inputs[["func"]] <<- input$func_status
+      risk_inputs[["inout"]] <<- input$oper
+      risk_inputs[["emer"]] <<- input$em_case
+      risk_inputs[["spec"]] <<- input$surg_spec
+    }
+  })
   
   output$downloadData <- downloadHandler(
     filename = "rendered_report.pdf",
-    
     content = function(file) {
       res <- rmarkdown::render("pdf_creation/download_handler.Rmd",
-                               params = create_param_list(events_df, create_waffle_plot))
+                               params = create_param_list(selected_events_df, create_waffle_plot))
       file.rename(res, file)
     }
   )

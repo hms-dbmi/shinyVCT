@@ -10,14 +10,9 @@ params:
   plot_func: NULL
   event_data: NULL
   plot1 : NULL
-
   top_arrow : plot1.jpg
   middle_arrow: plot1.jpg
   bot_arrow: plot1.jpg
-
-
-
-
   complications_background : images/total.jpg
   bottom_complications_background : images/bottom.jpg
 
@@ -119,7 +114,7 @@ library(formattable)
 \end{textblock*}
 
 \begin{textblock*}{5cm}(3.9cm,10.3cm) % {block width} (coords) 
-    \centerline{\textbf{`r paste(params$event_data[["V3"]][1], '\\%')`}}
+    \centerline{\textbf{`r paste(sprintf("%.2f",params$event_data[["V3"]][1]), '\\%', sep = "")`}}
 \end{textblock*}
 
 
@@ -133,7 +128,7 @@ library(formattable)
 \end{textblock*}
 
 \begin{textblock*}{5cm}(9.4cm,10.3cm) % {block width} (coords) 
-    \centerline{\textbf{`r paste(params$event_data[["V3"]][2], '\\%')`}}
+    \centerline{\textbf{`r paste(sprintf("%.2f",params$event_data[["V3"]][2]), '\\%', sep = "")`}}
 \end{textblock*}
 
 
@@ -147,7 +142,7 @@ library(formattable)
 \end{textblock*}
 
 \begin{textblock*}{5cm}(14.9cm,10.3cm) % {block width} (coords) 
-    \centerline{\textbf{`r paste(params$event_data[["V3"]][3], '\\%')`}}
+    \centerline{\textbf{`r paste(sprintf("%.2f",params$event_data[["V3"]][3]), '\\%', sep = "")`}}
 \end{textblock*}
 
 
@@ -169,7 +164,7 @@ library(formattable)
 \end{textblock*}
 
 \begin{textblock*}{5cm}(3.9cm,18.4cm) % {block width} (coords) 
-    \centerline{\textbf{`r paste(params$event_data[["V3"]][4], '\\%')`}}
+    \centerline{\textbf{`r paste(sprintf("%.2f",params$event_data[["V3"]][4]), '\\%', sep = "")`}}
 \end{textblock*}
 
 
@@ -183,7 +178,7 @@ library(formattable)
 \end{textblock*}
 
 \begin{textblock*}{5cm}(9.4cm,18.4cm) % {block width} (coords) 
-    \centerline{\textbf{`r paste(params$event_data[["V3"]][5], '\\%')`}}
+    \centerline{\textbf{`r paste(sprintf("%.2f",params$event_data[["V3"]][5]), '\\%', sep = "")`}}
 \end{textblock*}
 
 
@@ -197,7 +192,7 @@ library(formattable)
 \end{textblock*}
 
 \begin{textblock*}{5cm}(14.9cm,18.4cm) % {block width} (coords) 
-    \centerline{\textbf{`r paste(params$event_data[["V3"]][6], '\\%')`}}
+    \centerline{\textbf{`r paste(sprintf("%.2f",params$event_data[["V3"]][6]), '\\%', sep = "")`}}
 \end{textblock*}
 
 

@@ -31,23 +31,23 @@ output$pageStub <- renderUI(tagList(
                            column(
                              4,
                              align = "center",
-                             tags$h3(events[[1]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
-                             tags$h5(events[[1]][2], style = "margin:0px;padding:0px"),
-                             tags$h6(percent(as.numeric(events[[1]][3])), style = "margin-top:2px;padding:5px")
+                             tags$h3(selected_events_df["V1"][[1]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
+                             tags$h5(selected_events_df["V2"][[1]][1], style = "margin:0px;padding:0px"),
+                             tags$h6(percent(as.numeric(selected_events_df["V3"][[1]][1])), style = "margin-top:2px;padding:5px")
                            ),
                            column(
                              4,
                              align = "center",
-                             tags$h3(events[[2]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
-                             tags$h5(events[[2]][2], style = "margin:0px;padding:0px"),
-                             tags$h6(percent(as.numeric(events[[2]][3])), style = "margin-top:2px;padding:5px")
+                             tags$h3(selected_events_df["V1"][[1]][2], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
+                             tags$h5(selected_events_df["V2"][[1]][2], style = "margin:0px;padding:0px"),
+                             tags$h6(percent(as.numeric(selected_events_df["V3"][[1]][2])), style = "margin-top:2px;padding:5px")
                            ),
                            column(
                              4,
                              align = "center",
-                             tags$h3(events[[3]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
-                             tags$h5(events[[3]][2], style = "margin:0px;padding:0px"),
-                             tags$h6(percent(as.numeric(events[[3]][3])), style = "margin-top:2px;padding:5px")
+                             tags$h3(selected_events_df["V1"][[1]][3], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
+                             tags$h5(selected_events_df["V2"][[1]][3], style = "margin:0px;padding:0px"),
+                             tags$h6(percent(as.numeric(selected_events_df["V3"][[1]][3])), style = "margin-top:2px;padding:5px")
                            )
                          )),
                 
@@ -66,9 +66,9 @@ output$pageStub <- renderUI(tagList(
                            offset = 0,
                            
                            #three plots
-                           column(4, align = "center", img(src=bars_filled[1], height="100px", width="100px", align="center")),
-                           column(4, align = "center", img(src=bars_filled[2], height="100px", width="100px", align="center")),
-                           column(4, align = "center", img(src=bars_filled[3], height="100px", width="100px", align="center")),
+                           column(4, align = "center", img(src=get_bar_img(selected_events_df["V3"][[1]][1]), height="100px", width="100px", align="center")),
+                           column(4, align = "center", img(src=get_bar_img(selected_events_df["V3"][[1]][2]), height="100px", width="100px", align="center")),
+                           column(4, align = "center", img(src=get_bar_img(selected_events_df["V3"][[1]][3]), height="100px", width="100px", align="center")),
                            
                          ),
                          fluidRow(
@@ -78,23 +78,23 @@ output$pageStub <- renderUI(tagList(
                            column(
                              4,
                              align = "center",
-                             tags$h3(events[[1]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
-                             tags$h5(events[[1]][2], style = "margin:0px;padding:0px"),
-                             tags$h6(percent(as.numeric(events[[1]][3])), style = "margin-top:2px;padding:5px")
+                             tags$h3(selected_events_df["V1"][[1]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
+                             tags$h5(selected_events_df["V2"][[1]][1], style = "margin:0px;padding:0px"),
+                             tags$h6(percent(as.numeric(selected_events_df["V3"][[1]][1])), style = "margin-top:2px;padding:5px")
                            ),
                            column(
                              4,
                              align = "center",
-                             tags$h3(events[[2]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
-                             tags$h5(events[[2]][2], style = "margin:0px;padding:0px"),
-                             tags$h6(percent(as.numeric(events[[2]][3])), style = "margin-top:2px;padding:5px")
+                             tags$h3(selected_events_df["V1"][[1]][2], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
+                             tags$h5(selected_events_df["V2"][[1]][2], style = "margin:0px;padding:0px"),
+                             tags$h6(percent(as.numeric(selected_events_df["V3"][[1]][2])), style = "margin-top:2px;padding:5px")
                            ),
                            column(
                              4,
                              align = "center",
-                             tags$h3(events[[3]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
-                             tags$h5(events[[3]][2], style = "margin:0px;padding:0px"),
-                             tags$h6(percent(as.numeric(events[[3]][3])), style = "margin-top:2px;padding:5px")
+                             tags$h3(selected_events_df["V1"][[1]][3], style = "margin-bottom:2px; margin-top: 5px; padding:0px"),
+                             tags$h5(selected_events_df["V2"][[1]][3], style = "margin:0px;padding:0px"),
+                             tags$h6(percent(as.numeric(selected_events_df["V3"][[1]][3])), style = "margin-top:2px;padding:5px")
                            )
                          )
                          
@@ -105,13 +105,10 @@ output$pageStub <- renderUI(tagList(
     
     fluidRow(style = "overflow-y: auto;", column(12, align = "center",
                                                  
-    div(
-      id = "generate_pdf", tags$a(
-        h4("Generate Report",  class = "btn btn-danger",
-           style = "fontweight:600"),
-        href = "?graph_view"
-      )
-    )),
+    #div(id = "generate_pdf", tags$a(h4("Generate Report",  class = "btn btn-danger", style = "fontweight:600"),href = "?graph_view"))
+    #Download Button (Will be reposistioned)
+    downloadButton('downloadData', 'Download data'),
+    ),
 
     
     

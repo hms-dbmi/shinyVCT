@@ -12,14 +12,13 @@ output$pageStub <- renderUI(tagList(fluidRow(
         inputId = "asa_status",
         h4("American Society of Anesthesiology Class"),
         choices = list(
-          "Please Select One" = 1,
-          "ASA 1: Normal healthy patient." = 2,
-          "ASA 2: Patient with mild systemic disease" = 3,
-          "ASA 3: Patient with severe systemic disease" = 4,
-          "ASA 4: Patient with severe systemic disease that is a constant threat to life" = 5,
-          "ASA 6: Moribund patient who is not expected to survive without the operation" = 6
+          "Please Select One" = 0,
+          "ASA 1: Normal healthy patient." = 1,
+          "ASA 2: Patient with mild systemic disease" = 2,
+          "ASA 3: Patient with severe systemic disease" = 3,
+          "ASA 4: Patient with severe systemic disease that is a constant threat to life" = 4
         ),
-        selected = 1
+        selected = 0
       ),
       radioButtons(
         "func_status",
@@ -40,20 +39,14 @@ output$pageStub <- renderUI(tagList(fluidRow(
       selectInput(
         inputId =  "surg_spec",
         h4("Surgeon Specialty"),
-        choices = list(
-          "Please Select One" = 1,
-          "General" = 2,
-          "Gynecologic" = 3,
-          "Orthopedic" = 4,
-          "Vascular Surgery" = 5
-        ),
+        choices = valid_specialities,
         selected = 1
       ),
       radioButtons(
         "em_case",
         h4("Emergency Case"),
-        choices = list("Yes" = 1, "No" = 2),
-        selected = 2,
+        choices = list("Yes" = 1, "No" = 0),
+        selected = 0,
         inline = TRUE
       ),
       
@@ -61,7 +54,7 @@ output$pageStub <- renderUI(tagList(fluidRow(
       radioButtons(
         "oper",
         h4("In-/Outpatient Operation"),
-        choices = list("Inpatient" = 1, "Outpatient" = 2),
+        choices = list("Inpatient" = 1, "Outpatient" = 0),
         inline = TRUE
       ),
     ),
