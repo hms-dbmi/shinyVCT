@@ -16,7 +16,8 @@ output$pageStub <- renderUI(tagList(fluidRow(
           "ASA 1: Normal healthy patient." = 1,
           "ASA 2: Patient with mild systemic disease" = 2,
           "ASA 3: Patient with severe systemic disease" = 3,
-          "ASA 4: Patient with severe systemic disease that is a constant threat to life" = 4
+          "ASA 4: Patient with severe systemic disease that is a constant threat to life" = 4,
+          "ASA V:	A moribund patient who is not expected to survive without the operation" = 5
         ),
         selected = 0
       ),

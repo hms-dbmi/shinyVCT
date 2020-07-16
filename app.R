@@ -6,8 +6,12 @@ library(rmarkdown)
 library(Cairo)
 library(png)
 library(pdftools)
+library(magick)
+
 library(shinycssloaders)
 source("calculation/beta_values.R")
+source("img_functions.R")
+
 
 
 # put a message in console or server log; note this happens only when the app is started!
@@ -111,64 +115,7 @@ high_risk = NULL
 selected_events_df = NULL
 discharge_data = NULL
 
-create_param_list <-
-  function(input_df,
-           destination_vals,
-           risk_inputs,
-           waffle_func) {
-    arrow_cuttoffs <- c(0.05, 0.25, 0.5, 0.75)
-    locations <- c('top', 'middle', 'bot')
-    input_df$V3 = input_df$V3 * 100
-    arrow_locs <- c()
-    params <- list(
-      event_data = input_df,
-      plot_func =  waffle_func,
-      destination_home = destination_vals[1] * 100,
-      destination_readmit = destination_vals[2] * 100,
-      destination_death = destination_vals[3] * 100,
-      CPT = risk_inputs[["cpt"]]
-    )
-    for (i in 1:3) {
-      arrow = paste("New Images/", locations[i], max(which(arrow_cuttoffs <= destination_vals[i]), 0) + 1,
-                    ".png", sep = "")
-      params[[paste(locations[i], "_arrow", sep = "")]] <- arrow
-    }
-    return(params)
-  }
 
-#Development of Waffle Plot
-create_waffle_plot <- function (input_val) {
-  i <- 0
-  i <- i + 1
-  rs <- c()
-  cs <- c()
-  num <- as.numeric(input_val)
-  clrs <- c()
-  
-  #Dataframe of points in a 10x10 grid (each point assigned a color value)
-  for (v in seq(from = min(0), to = max(99))) {
-    rs <- c(rs, v %% 10)
-    cs <- c(cs, v %/% 10)
-    clrs <- c(clrs, (v + 1) <= num)
-  }
-  df <- data.frame(rs, cs, clrs)
-  as.integer(as.logical(df$clrs))
-  
-  #Plotting and formatting the dataframe
-  plot <- ggplot(df, aes(x = rs, y = cs)) +
-    geom_point(
-      aes(fill = factor(clrs)),
-      size = 1,
-      colour = "black",
-      shape = 21,
-      stroke = 1,
-    ) +
-    theme_void() +
-    theme(legend.position = "none") +
-    scale_fill_manual(values = c("white", "black"))
-  
-  return(plot)
-}
 
 addline_format <- function(x, ...) {
   gsub('\\s', '\n', x)
@@ -178,60 +125,8 @@ addline_format <- function(x, ...) {
 
 
 
-#development of the lollipop graph
-
-create_lollipop <- function (events_df) {
-  lolli_y <- c()
-  lolli_x <- c()
-  for (i in 1:nrow(events_df)) {
-    row <- events_df[i,]
-    lolli_x  = c(lolli_x, as.character(row[["V1"]]))
-    lolli_y  = c(lolli_y, log10(as.numeric(row[["V3"]])))
-    
-  }
-  lolli_df = data.frame(lolli_x, lolli_y)
-  ggplot(lolli_df, aes(x = lolli_x, y = lolli_y)) +
-    geom_segment(
-      aes(
-        x = lolli_x,
-        xend = lolli_x,
-        y = -4,
-        yend = lolli_y
-      ),
-      color = "skyblue",
-      size = 2
-    ) +
-    geom_point(color = "blue",
-               size = 6,
-               alpha = 1) +
-    theme_light() +
-    coord_flip() +
-    theme(
-      panel.grid.major.y = element_blank(),
-      panel.border = element_blank(),
-      axis.ticks.y = element_blank(),
-      axis.title.y = element_blank(),
-      axis.title.x = element_blank(),
-      axis.text.y = element_text(size = 14),
-      axis.text.x = element_text(size = 12),
-    )  +
-    
-    scale_y_continuous(
-      position = "right",
-      limits = c(-4, 0),
-      label = function(x) {
-        return(paste("1 in", 10 ^ (-1 * x)))
-      }
-    ) +
-    scale_x_discrete(labels = addline_format(lolli_x))
-}
 
 
-get_bar_img <- function(value) {
-  return (paste("bar_imgs/bar", max(
-    which(bar_strength_cutoffs <= as.numeric(value)) - 1
-  ), ".png", sep = ""))
-}
 
 
 server <- function(input, output, session) {
@@ -282,26 +177,6 @@ server <- function(input, output, session) {
   if (fname == "r_pages/graph_view.R") {
     if (is.null(risk_inputs[["cpt"]]) || is.null(risk_inputs[["asa"]])) {
       fname = "?home"
-    } else{
-      rmarkdown::render(
-        "pdf_creation/download_handler.Rmd",
-        output_dir = temp_folder,
-        output_file = "rendered_report.pdf",
-        params = create_param_list(
-          selected_events_df,
-          discharge_data,
-          risk_inputs,
-          create_waffle_plot
-        )
-      )
-      
-      bitmap <-
-        pdf_render_page(
-          paste(temp_folder, "/rendered_report.pdf", sep = "") ,
-          page = 1,
-          dpi = 300
-        )
-      png::writePNG(bitmap, paste(temp_folder, "/rendered_pic.png", sep = ""))
     }
   }
   
@@ -359,9 +234,59 @@ server <- function(input, output, session) {
   
   
   
-  output$img1 <- renderImage({
+  output$dot <- renderImage({
+    params = create_param_list(selected_events_df,
+                      discharge_data,
+                      risk_inputs,
+                      "waffle"
+    )
+    final_plot <- generate_final_image(params)
+
+        tmpfile <- final_plot %>%
+      image_write(tempfile(fileext='svg'), format = 'svg')
+    
+    # Return a list
     list(
-      src = paste(temp_folder, "/rendered_pic.png", sep = ""),
+      src = tmpfile, contentType = "image/svg+xml",
+      
+      width = "100%",
+      height = "auto"
+    )
+  })
+  output$log <- renderImage({
+    params = create_param_list(selected_events_df,
+                               discharge_data,
+                               risk_inputs,
+                               "logarithmic"
+    )
+    final_plot <- generate_final_image(params)
+    
+    tmpfile <- final_plot %>%
+      image_write(tempfile(fileext='svg'), format = 'svg')
+    
+    # Return a list
+    list(
+      src = tmpfile, contentType = "image/svg+xml",
+      
+      width = "100%",
+      height = "auto"
+    )
+  })
+  output$bar <- renderImage({
+    params = create_param_list(selected_events_df,
+                               discharge_data,
+                               risk_inputs,
+                               "bar"
+    )
+    final_plot <- generate_final_image(params)
+    
+    tmpfile <- final_plot %>%
+      image_write(tempfile(fileext='svg'), format = 'svg')
+    
+    # Return a list
+    list(
+      src = tmpfile, contentType = "image/svg+xml",
+      
       width = "100%",
       height = "auto"
     )
