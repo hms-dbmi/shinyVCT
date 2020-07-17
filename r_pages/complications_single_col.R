@@ -10,15 +10,15 @@ output$pageStub <- renderUI(tagList(
           
           column(
             4,
-            tags$h5(events[[1]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px")
+            tags$h5(high_risk[1], style = "margin-bottom:2px; margin-top: 5px; padding:0px")
           ),
           column(
             4,
-            tags$h5(events[[2]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px")
+            tags$h5(high_risk[2], style = "margin-bottom:2px; margin-top: 5px; padding:0px")
           ),
           column(
             4,
-            tags$h5(events[[3]][1], style = "margin-bottom:2px; margin-top: 5px; padding:0px")
+            tags$h5(high_risk[3], style = "margin-bottom:2px; margin-top: 5px; padding:0px")
           ),
           br()
     )),
