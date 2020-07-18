@@ -54,18 +54,12 @@ compare_chance = function(risk, value, cpt, age){
   risk_val = data_vals[paste(risk, "Rate", sep = "")][[1]][1]
   subset = NULL
   if(age > 65){
-    over_65["means"] = over_65["means2"]
-    over_65["sds"] = over_65["sds2"]
     subset = over_65[over_65$cpts == cpt & over_65$risk == risk,]
 
   }else{
     subset = under_65[under_65$cpts == cpt & under_65$risk == risk,]
   }
-  print("MEAN")
-  print(risk)
-  print(subset$means[1])
-  print(2*as.numeric(subset$sds[1]) + as.numeric(subset$means[1]))
-  print(as.numeric(subset$means[1]) - 2*as.numeric(subset$sds[1]))
+
   if (as.numeric(value) > (2*as.numeric(subset$sds[1]) + as.numeric(subset$means[1]))){
     return ("Above Average")
   }else if (as.numeric(value) <(as.numeric(subset$means[1]) - 2*as.numeric(subset$sds[1]))){

@@ -1,11 +1,23 @@
 functional_levels = c("Independent", "Partially Independent", "Totally Dependent")
-names(functional_levels) = c("0", "1", "2")
+names(functional_levels) = c( "1", "2","3")
 
 patient_levels = c("ASA 1: Normal healthy patient", "ASA 2: Patient with mild systemic disease", "ASA 3: Patient with severe systemic disease",
                    "ASA 4: Patient with severe systemic disease that is a constant threat to life",
                    "ASA V:	A moribund patient who is not expected to survive without the operation")
 names(patient_levels) = c("1", "2", "3", "4", "5")
 
+
+valid_operations = c(55866, 38571, 50543, 52234, 52235, 52240)
+valid_operations_names = c("55866 - Minimally Invasive Radical Prostatectomy",
+                           "38571 - Minimally Invasive Radical Prostatectomy with Lymph Node Dissection",
+                           "50543 - Minimally Invasive Partial Nephrectomy",
+                           "52234 - Transurethral Resection of Bladder Tumor of <2 cm",
+                           "52235 - Transurethral Resection of Bladder Tumor of 2-5 cm",
+                           "52240 - Transurethral Resection of Bladder Tumor of >5 cm")
+names(valid_operations) = valid_operations_names
+
+reverse_valid_operations = valid_operations_names
+names(reverse_valid_operations) = valid_operations
 
 addline_format <- function(x,...){
   gsub('\\s','\n',x)
@@ -56,10 +68,9 @@ create_plot<- function (percents) {
     imgs = c(imgs, img)
   }
   img1 <- image_read_svg('www/magick_imgs/Background_1.svg')
-  print(imgs)
   arrows = image_mosaic(c(image_read_svg(imgs[1]), 
-                           image_read_svg(imgs[2]),
-                           image_read_svg(imgs[3])))
+                          image_read_svg(imgs[2]),
+                          image_read_svg(imgs[3])))
   arrows = image_transparent(arrows, 'white')
   img2 <- image_read_svg('www/magick_imgs/bot_small.svg')
   img3 <- image_read_svg('www/magick_imgs/Background_3.svg')
@@ -78,47 +89,13 @@ add_discharge_percents = function(percents, t_image){
   return (image)
 }
 
-
-create_log_plot <- function(events){
-  i <- 0
-  lolli_y <- c()
-  lolli_x <- c()
-  print(events)
+log_plot_gen = function (lolli_df){
   
-  for (row_num in seq(3,1)) {
-    x = events[row_num, ]
-    i <- i + 1
-    product <- as.numeric(x[[3]]) 
-    str_label = paste(
-              "<p style='line-height:10;color:#1b1862;font-size:8pt'>
-              <b>", x[[1]], "</b><br>
-              <b>", x[[2]], "</b><br>
-              <b>", paste(format(round(as.numeric(x[[3]]), 1), nsmall = 1), "%", sep = ""),"</b></p>")
-    
-    lolli_x  = c(lolli_x, str_label )
-    lolli_y  = c(lolli_y, log10(as.numeric(x[[3]])/100))
-  }
-  lolli_df = data.frame(lolli_x, lolli_y)
-  print(lolli_df)
-  lolli_tx = c("<p style='line-height:10;color:#1b1862;font-size:8pt'>
-              <b>Pulmonary (Lung) Complications</b><br>
-              <b>Above Average</b><br>
-              <b>5.0%</b></p>",
-             "<p style='line-height:10;color:#1b1862;font-size:8pt'>
-              <b>Cardiac (Heart) Complications</b><br>
-              <b>Above Average</b><br>
-              <b>5.0%</b></p>",
-             "<p style='line-height:10;color:#1b1862;font-size:8pt'>
-              <b>Renal (Kidney) Complications</b><br>
-              <b>Above Average</b><br>
-              <b>5.0%</b></p>")
-  
-  plot1 <- ggplot(lolli_df, aes(x = lolli_x, y = lolli_y)) +
-    
+  plot1 <- ggplot(lolli_df, aes(x = reorder(lolli_x, lolli_y), y = lolli_y)) +
     geom_segment(
       aes(
-        x = lolli_x,
-        xend = lolli_x,
+        x = reorder(lolli_x, lolli_y),
+        xend = reorder(lolli_x, lolli_y),
         y = -4,
         yend = lolli_y
       ),
@@ -136,8 +113,7 @@ create_log_plot <- function(events){
       axis.ticks.y = element_blank(),
       axis.title.y = element_blank(),
       axis.title.x = element_blank(),
-      axis.text.y = element_markdown(hjust = 0.5),
-      #axis.text.y = element_text(size = 8, color = "#1b1862", hjust = 0.5),
+      axis.text.y = element_text(size = 9, color = "#1b1862", hjust = 0.5),
       axis.text.x = element_text(size = 12),
     )  +
     
@@ -148,21 +124,45 @@ create_log_plot <- function(events){
         return(paste("1 in", 10 ^ (-1 * x)))
       }
     ) + 
-    scale_x_discrete(labels = addline_format(lolli_x))
+    scale_x_discrete(labels = lolli_df$lolli_x)
   
   return(plot1)
 }
+
+create_log_plot <- function(events,top = TRUE){
+  i <- 0
+  lolli_y <- c()
+  lolli_x <- c()
+  for (row_num in nrow(events):1) {
+    x = events[row_num, ]
+    
+    i <- i + 1
+    str_label = paste(x[[1]],"\n",
+                      x[[2]],"\n",
+                      paste(format(round(x[[3]], 1), nsmall = 1), "%", sep = ""))
+    lolli_x  = c(lolli_x, str_label )
+    lolli_y  = c(lolli_y, log10(as.numeric(x[[3]])/100))
+  }
+  lolli_df = data.frame(lolli_x, lolli_y)
+  if (top){
+    lolli_df$lolli_y =  rev(lolli_df$lolli_y )
+  }
+  return (log_plot_gen(lolli_df))
+
+}
+
+
 
 
 create_logarithmic_ggplot <- function(params, image){
   i <- 1
   offsets <- c("+139+175", "+139+522")
   top_plot <- image_graph(width = 587, height = 210, res = 96)
-    print(create_log_plot(params$event_data[1:3,]))
+  print(create_log_plot(params$event_data[1:3,], TRUE))
   dev.off()
   image <- image_composite(image, top_plot, offset = "+139+175")
   bot_plot <- image_graph(width = 587, height = 210, res = 96)
-  print(create_log_plot(params$event_data[4:6,]))
+  print(create_log_plot(params$event_data[4:6,], FALSE))
   dev.off()
   image <- image_composite(image, bot_plot, offset = "+139+522")
   
@@ -178,15 +178,15 @@ create_waffle_and_caption = function(input_row){
   type = as.character(input_row[[1]])
   av = input_row[[2]]
   plot <- image_graph(width = 90, height = 90, res = 72)
-    print(create_waffle_plot(value))
+  print(create_waffle_plot(value))
   dev.off()
   white_left = image_blank(width = 53, height= 90, color = "none")
   white_right = image_blank(width = 53, height= 90, color = "none")
   plot = image_append(c(white_left, plot, white_right))
   text = image_blank(width = 196, height= 60, color = "none")
-  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17" )
-  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0" )
-  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15" )
+  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
+  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862" )
+  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
   plot2 = image_append(c(plot, text), stack = TRUE)
   return (plot2)
 }
@@ -199,25 +199,23 @@ get_bar_img <- function(value) {
   ), ".png", sep = ""))
 }
 create_bar_and_caption = function(input_row){
-  print(input_row)
   value = as.numeric(input_row[[3]])
   type = as.character(input_row[[1]])
   av = input_row[[2]]
-
   plot <- image_read(get_bar_img(value))
   plot <- image_scale(plot,"90x90")
   white_left = image_blank(width = 53, height= 90, color = "none")
   white_right = image_blank(width = 53, height= 90, color = "none")
   plot = image_append(c(white_left, plot, white_right))
   text = image_blank(width = 196, height= 60, color = "none")
-  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17" )
-  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0" )
-  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15" )
+  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
+  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862")
+  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
   plot2 = image_append(c(plot, text), stack = TRUE)
   return (plot2)
 }
 create_waffle_ggplot <- function(params, final_image) {
-
+  
   upperplots = image_append(c(create_waffle_and_caption(params$event_data[1, ]),
                               create_waffle_and_caption(params$event_data[2, ]),
                               create_waffle_and_caption(params$event_data[3, ])
@@ -255,32 +253,35 @@ add_profile <- function(params, basic_image) {
   info_font_size = 12 
   temp_blank = image_blank(width = image_info(basic_image)[['width']][[1]], height= image_info(basic_image)[['height']][[1]], color = "none")
   
-  temp_blank = image_annotate(temp_blank, "Patient Age:",  location = "+200+55", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
-  temp_blank = image_annotate(temp_blank, params$age,  location = "+200+70", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
-  
-  temp_blank = image_annotate(temp_blank, "ASA Class:",  location = paste("+200+",55 + 15 * 2, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
-  temp_blank = image_annotate(temp_blank, patient_levels[[params$asa_level]],  location = paste("+200+",55 + 15 * 3, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
+  temp_blank = image_annotate(temp_blank, "Procedure:",  location = "+300+55", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, params$cpt_full,  location = "+300+70", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862")
   
   
-  temp_blank = image_annotate(temp_blank, "Functional Status:",  location = paste("+200+",55 + 15 * 4, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
-  temp_blank = image_annotate(temp_blank, functional_levels[[params$functional_level]],  location = paste("+200+",55 + 15 * 5, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
+  temp_blank = image_annotate(temp_blank, "Patient Age:",  location = "+175+55", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, params$age,  location = "+175+70", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
-  temp_blank = image_annotate(temp_blank, "Surgeon Specialty:",  location = paste("+50+",55 + 15 * 0, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
-  temp_blank = image_annotate(temp_blank, params$specialty,  location = paste("+50+",55 + 15 * 1, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
+  temp_blank = image_annotate(temp_blank, "ASA Class:",  location = paste("+175+",55 + 15 * 2, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, patient_levels[[params$asa_level]],  location = paste("+175+",55 + 15 * 3, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+
+  temp_blank = image_annotate(temp_blank, "Functional Status:",  location = paste("+175+",55 + 15 * 4, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, functional_levels[[params$functional_level]],  location = paste("+175+",55 + 15 * 5, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  
+  temp_blank = image_annotate(temp_blank, "Surgeon Specialty:",  location = paste("+50+",55 + 15 * 0, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, params$specialty,  location = paste("+50+",55 + 15 * 1, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
   emergency = "Non-Emergancy"
   if(params$emergency == "1"){
     emergency = "Emergency"
   }
-  temp_blank = image_annotate(temp_blank, "Emergancy Case:",  location = paste("+50+",55 + 15 * 2, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
-  temp_blank = image_annotate(temp_blank, emergency,  location = paste("+50+",55 + 15 * 3, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
+  temp_blank = image_annotate(temp_blank, "Emergancy Case:",  location = paste("+50+",55 + 15 * 2, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, emergency,  location = paste("+50+",55 + 15 * 3, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
   in_out = "Inpatient"
   if(params$in_out_patient == "0"){
     in_out = "Outpatient"
   }
-  temp_blank = image_annotate(temp_blank, "In/Out Patient:",  location = paste("+50+",55 + 15 * 4, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
-  temp_blank = image_annotate(temp_blank, in_out,  location = paste("+50+",55 + 15 * 5, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast") 
+  temp_blank = image_annotate(temp_blank, "In/Out Patient:",  location = paste("+50+",55 + 15 * 4, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, in_out,  location = paste("+50+",55 + 15 * 5, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
   basic_image = image_composite(basic_image, temp_blank)
   return(basic_image)
@@ -293,7 +294,6 @@ generate_final_image <- function(params) {
   plot_function <- plot_function_dict[[params$plot_type]]
   basic_image <- generate_basic_image(params)
   final_image <- plot_function(params, basic_image)
-  print(basic_image)
   return(final_image)
 }
 
@@ -301,7 +301,6 @@ generate_final_image <- function(params) {
 
 generate_basic_image <- function(params){
   #start with the background (log background vs dot and bar background)
-  print("ok")
   if(params$plot_type == 'logarithmic'){
     basic_image <- image_read_svg('www/magick_imgs/Background_2.svg')
   }
@@ -350,7 +349,6 @@ create_param_list <-
            destination_vals,
            risk_inputs,
            waffle_func) {
-    print(risk_inputs)
     arrow_cuttoffs <- c(0.05, 0.25, 0.5, 0.75)
     locations <- c('top', 'middle', 'bot')
     input_df$V3 = input_df$V3 * 100
@@ -361,13 +359,14 @@ create_param_list <-
       destination_home = destination_vals[1] * 100,
       destination_readmit = destination_vals[2] * 100,
       destination_death = destination_vals[3] * 100,
-      cpt_ = risk_inputs[["cpt"]],
+      cpt = risk_inputs[["cpt"]],
       age = risk_inputs[["age"]],
       asa_level = risk_inputs[["asa"]],
       emergency = risk_inputs[["emer"]],
       functional_level = risk_inputs[["func"]],
       in_out_patient = risk_inputs[["inout"]],
-      specialty = risk_inputs[["spec"]]
+      specialty = risk_inputs[["spec"]],
+      cpt_full = reverse_valid_operations[[risk_inputs[["cpt"]]]]
       
       
     )

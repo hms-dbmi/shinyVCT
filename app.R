@@ -2,12 +2,7 @@ library(shiny)
 library(ggplot2)
 library(formattable)
 library(shinyjs)
-library(rmarkdown)
-library(Cairo)
-library(png)
-library(pdftools)
 library(magick)
-
 library(shinycssloaders)
 source("calculation/beta_values.R")
 source("img_functions.R")
@@ -121,14 +116,7 @@ addline_format <- function(x, ...) {
   gsub('\\s', '\n', x)
 }
 
-#Developing DataFrames to create a dot array
-
-
-
-
-
-
-
+#
 server <- function(input, output, session) {
   cat("Session started.\n") # this prints when a session starts
   
@@ -232,23 +220,21 @@ server <- function(input, output, session) {
   }
   source(fname, local = TRUE)
   
-  
-  
+
   output$dot <- renderImage({
+
     params = create_param_list(selected_events_df,
                       discharge_data,
                       risk_inputs,
                       "waffle"
     )
     final_plot <- generate_final_image(params)
-
-        tmpfile <- final_plot %>%
+      tmpfile <- final_plot %>%
       image_write(tempfile(fileext='svg'), format = 'svg')
     
     # Return a list
     list(
       src = tmpfile, contentType = "image/svg+xml",
-      
       width = "100%",
       height = "auto"
     )
@@ -291,44 +277,13 @@ server <- function(input, output, session) {
       height = "auto"
     )
   })
-  output$dot_array_1 <-
-    renderPlot({
-      create_waffle_plot(as.numeric(events_df[["V3"]][1]) * 100)
-    }, height = 100, width = 100)
-  output$dot_array_2 <-
-    renderPlot({
-      create_waffle_plot(as.numeric(events_df[["V3"]][2]) * 100)
-    }, height = 100, width = 100)
-  output$dot_array_3 <-
-    renderPlot({
-      create_waffle_plot(as.numeric(events_df[["V3"]][3]) * 100)
-    }, height = 100, width = 100)
-  output$dot_array_4 <-
-    renderPlot({
-      create_waffle_plot(as.numeric(events_df[["V3"]][4]) * 100)
-    }, height = 100, width = 100)
-  output$dot_array_5 <-
-    renderPlot({
-      create_waffle_plot(as.numeric(events_df[["V3"]][5]) * 100)
-    }, height = 100, width = 100)
-  output$dot_array_6 <-
-    renderPlot({
-      create_waffle_plot(as.numeric(events_df[["V3"]][6]) * 100)
-    }, height = 100, width = 100)
-  output$lollipop <-
-    renderPlot({
-      create_lollipop(events_df[1:3,])
-    }, height = 200)
-  output$lollipop_small <-
-    renderPlot({
-      create_lollipop(events_df[4:6,])
-    }, height = 75)
-  output$lollipop_secondary <-
-    renderPlot({
-      create_lollipop(events_df[4:6,])
-    }, height = 200)
-  
-  
+  observe({
+    if (is.null(input$procedure)) {
+    }
+    else{
+      shinyjs::showElement(id = "to_form")
+    }
+  })
   observe({
     if (is.null(input$asa_status) ||
         input$asa_status == 0 ||
@@ -378,19 +333,37 @@ server <- function(input, output, session) {
     }
   })
   
-  output$downloadData <- downloadHandler(
+  output$downloadDot <- downloadHandler(
     filename = "rendered_report.pdf",
     content = function(file) {
-      res <- rmarkdown::render(
-        "pdf_creation/download_handler.Rmd",
-        params = create_param_list(
-          selected_events_df,
-          discharge_data,
-          risk_inputs,
-          create_waffle_plot
-        )
-      )
-      file.rename(res, file)
+      res <- image_write(image_convert(generate_final_image(create_param_list(selected_events_df,
+                                                                              discharge_data,
+                                                                              risk_inputs,
+                                                                              "waffle")), "PDF"), "hold.pdf")
+      
+      file.copy(res, file)
+    }
+  )
+  output$downloadLog <- downloadHandler(
+    filename = "rendered_report.pdf",
+    content = function(file) {
+      res <- image_write(image_convert(generate_final_image(create_param_list(selected_events_df,
+                                                                              discharge_data,
+                                                                              risk_inputs,
+                                                                              "logarithmic")), "PDF"), "hold.pdf")
+      
+      file.copy(res, file)
+    }
+  )
+  output$downloadBar <- downloadHandler(
+    filename = "rendered_report.pdf",
+    content = function(file) {
+      res <- image_write(image_convert(generate_final_image(create_param_list(selected_events_df,
+                                                                              discharge_data,
+                                                                              risk_inputs,
+                                                                              "bar")), "PDF"), "hold.pdf")
+       
+      file.copy(res, file)
     }
   )
 }

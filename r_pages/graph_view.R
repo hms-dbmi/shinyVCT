@@ -11,33 +11,58 @@ output$pageStub <- renderUI(tagList(
                          column(12, align = "center",  style = "margin-top:-10px;padding:0px", tags$style(
                            type="text/css",
                            #"#image img {width: auto; max-height: 500px; height: auto}"
-                         ), imageOutput("dot")),
+                         ), withSpinner(type = 8, color = "#2BBBAD", imageOutput("dot"))),
+                         
+                         br(), br(),br(),br(),
+                         
+                         fluidRow(style = "overflow-y: auto;", 
+                                  column(6, align = "center", div(tags$a(
+                                    h4("Back",  class = "btn btn-default btn-secondary action-button",
+                                       style = "fontweight:600"),
+                                    href = "?complications_single_col"
+                                  ))),
+                                  column(6, align = "center",
+                          downloadButton('downloadDot', 'Download PDF Report'),
+                         )),
+                         
 
                 ),
                 tabPanel("Logarithmic Lollipop", br(),
                          column(12, align = "center",  style = "margin-top:-10px;padding:0px", tags$style(
                            type="text/css",
                            #"#image img {width: auto; max-height: 500px; height: auto}"
-                         ), imageOutput("log")),
+                         ), withSpinner(type = 8, color = "#2BBBAD", imageOutput("log"))),
+
+                         br(), br(),br(),br(),
+                         fluidRow(style = "overflow-y: auto;", column(6, align = "center", div(tags$a(
+                           h4("Back",  class = "btn btn-default btn-secondary action-button",
+                              style = "fontweight:600"),
+                           href = "?complications_single_col"
+                         ))), column(6, align = "center",
+                             downloadButton('downloadLog', 'Download PDF Report'),
+                         )),
                          
                 ),
                 tabPanel("Bar Strength", br(),
                          column(12, align = "center",  style = "margin-top:-10px;padding:0px", tags$style(
                            type="text/css",
                            #"#image img {width: auto; max-height: 500px; height: auto}"
-                         ), imageOutput("bar")),
+                         ), withSpinner(type = 8, color = "#2BBBAD", imageOutput("bar"))),
+                         br(), br(),br(),br(),
+                         fluidRow(style = "overflow-y: auto;", column(6, align = "center", div(tags$a(
+                           h4("Back",  class = "btn btn-default btn-secondary action-button",
+                              style = "fontweight:600"),
+                           href = "?complications_single_col"
+                         ))),
+                                  column(6, align = "center",
+                              downloadButton('downloadBar', 'Download PDF Report'),
+                         )),
                          
                 )
 
                 
     ),
-    
-    fluidRow(style = "overflow-y: auto;", column(12, align = "center",
-                                                 
-    #div(id = "generate_pdf", tags$a(h4("Generate Report",  class = "btn btn-danger", style = "fontweight:600"),href = "?graph_view"))
-    #Download Button (Will be reposistioned)
-    downloadButton('downloadData', 'Download data'),
-    ),
+
 
     
     
@@ -46,4 +71,4 @@ output$pageStub <- renderUI(tagList(
 )
 
 
-))
+)

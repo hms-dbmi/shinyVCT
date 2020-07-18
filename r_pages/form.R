@@ -8,6 +8,7 @@ output$pageStub <- renderUI(tagList(fluidRow(
       numericInput(inputId = "age",
                    h4("Enter Patient Age"),
                    value = 18),
+      br(),
       selectInput(
         inputId = "asa_status",
         h4("American Society of Anesthesiology Class"),
@@ -21,47 +22,50 @@ output$pageStub <- renderUI(tagList(fluidRow(
         ),
         selected = 0
       ),
-      radioButtons(
-        "func_status",
+      selectInput(
+        inputId = "func_status",
         h4("Functional Status"),
         choices = list(
-          "Independant" = 1,
-          "Partially Dependant" = 2,
-          "Totally Dependant" = 3
+          "Independent" = 1,
+          "Partially Dependent" = 2,
+          "Totally Dependent" = 3
         ),
-        inline = FALSE
+        selected = 1
       ),
       
     ),
     column(
       6,
       align = "left",
-      
       selectInput(
         inputId =  "surg_spec",
         h4("Surgeon Specialty"),
         choices = valid_specialities,
         selected = 1
       ),
-      radioButtons(
-        "em_case",
+      selectInput(
+        inputId = "em_case",
         h4("Emergency Case"),
         choices = list("Yes" = 1, "No" = 0),
         selected = 0,
-        inline = TRUE
       ),
       
       
-      radioButtons(
-        "oper",
+      selectInput(
+        inputId ="oper",
         h4("In-/Outpatient Operation"),
         choices = list("Inpatient" = 1, "Outpatient" = 0),
-        inline = TRUE
+        selected = 0,
       ),
     ),
 
-    column(12, br(), br(), br(), br(), br(), br()),
-    column(12, align = "center", div(id = "to_user", tags$a(
+    column(12, br(), br(), br(), br(), br(), br(),br(),br() ),
+    column(6, align = "center", div(tags$a(
+      h4("Back",  class = "btn btn-default btn-secondary action-button",
+         style = "fontweight:600"),
+      href = "?home"
+    ))),
+    column(6, align = "center", div(id = "to_user", tags$a(
       h4("Next",  class = "btn btn-default btn-info action-button",
          style = "fontweight:600"),
       href = "?complications_single_col"

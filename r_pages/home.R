@@ -16,10 +16,10 @@ output$pageStub <- renderUI(tagList(fluidRow(
            
       )),
     column(12, align = "center",
-           div(
+           shinyjs::hidden(div(
              id = "to_form", tags$a(
                h4("Next",  class = "btn btn-default btn-info action-button",
                   style = "fontweight:600"),
                href = "?form"
-             ) ))
+             ) )))
   )))

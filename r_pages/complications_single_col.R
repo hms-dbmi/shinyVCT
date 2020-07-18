@@ -35,8 +35,12 @@ output$pageStub <- renderUI(tagList(
     ),
     ),
   ),  
-
-  column(12, align = "center", div(
+  column(6, align = "center", div(tags$a(
+    h4("Back",  class = "btn btn-default btn-secondary action-button",
+       style = "fontweight:600"),
+    href = "?form"
+  ))),
+  column(6, align = "center", div(
     id = "to_graph", tags$a(
       h4("Next",  class = "btn btn-default btn-info",
          style = "fontweight:600"),
