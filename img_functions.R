@@ -16,6 +16,7 @@ valid_operations_names = c("55866 - Minimally Invasive Radical Prostatectomy",
                            "52240 - Transurethral Resection of Bladder Tumor of >5 cm")
 names(valid_operations) = valid_operations_names
 
+
 reverse_valid_operations = valid_operations_names
 names(reverse_valid_operations) = valid_operations
 

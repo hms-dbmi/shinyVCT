@@ -4,6 +4,8 @@ library(formattable)
 library(shinyjs)
 library(magick)
 library(shinycssloaders)
+library(rsconnect)
+
 source("calculation/beta_values.R")
 source("img_functions.R")
 
@@ -141,15 +143,10 @@ server <- function(input, output, session) {
   
   # load server code for page specified in URL
   validFiles = c(
-    "r_pages/complications.R",
     "r_pages/graph_view.R",
     "r_pages/home.R",
     "r_pages/form.R",
-    "r_pages/complications_single_col.R",
-    "r_pages/alternative_view1.R",
-    "r_pages/alternative_view2.R",
-    "r_pages/alternative_view3.R",
-    "r_pages/alternative_view4.R"
+    "r_pages/complications_single_col.R"
   )
   
   
@@ -278,7 +275,10 @@ server <- function(input, output, session) {
     )
   })
   observe({
-    if (is.null(input$procedure)) {
+    if (is.null(input$procedure)||
+        input$procedure == 0) {
+      shinyjs::hideElement(id = "to_form")
+      
     }
     else{
       shinyjs::showElement(id = "to_form")
