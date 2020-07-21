@@ -4,22 +4,20 @@ output$pageStub <- renderUI(tagList(fluidRow(
     column(
       12,
       align = "left",
-      div( style = "padding-left:20%",
-           radioButtons(
-             "procedure",
-             width = "75%",
-             label= NULL,
-             choices = valid_operations,
-             selected = 1
-           ),
+      div( style = "padding-left:20%; padding-bottom:40%",
+           selectizeInput(inputId = 'procedure', label = NULL, 
+                          choices = c("Please Select Operation" = 0,valid_operations), selected = NULL,  
+                          options = list(placeholder = "Please Select Operation", 'persist' = TRUE)),
+           
+
            
            
       )),
     column(12, align = "center",
-           div(
+           shinyjs::hidden(div(
              id = "to_form", tags$a(
                h4("Next",  class = "btn btn-default btn-info action-button",
                   style = "fontweight:600"),
                href = "?form"
-             ) ))
+             ) )))
   )))
