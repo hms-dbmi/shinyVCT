@@ -1,6 +1,5 @@
-page_font = 'Arial'
 functional_levels = c("Independent", "Partially Independent", "Totally Dependent")
-names(functional_levels) = c("0", "1", "2")
+names(functional_levels) = c( "1", "2","3")
 
 patient_levels = c("ASA 1: Normal healthy patient", "ASA 2: Patient with mild systemic disease", "ASA 3: Patient with severe systemic disease",
                    "ASA 4: Patient with severe systemic disease that is a constant threat to life",
@@ -16,6 +15,7 @@ valid_operations_names = c("55866 - Minimally Invasive Radical Prostatectomy",
                            "52235 - Transurethral Resection of Bladder Tumor of 2-5 cm",
                            "52240 - Transurethral Resection of Bladder Tumor of >5 cm")
 names(valid_operations) = valid_operations_names
+
 
 reverse_valid_operations = valid_operations_names
 names(reverse_valid_operations) = valid_operations
@@ -69,10 +69,9 @@ create_plot<- function (percents) {
     imgs = c(imgs, img)
   }
   img1 <- image_read_svg('www/magick_imgs/Background_1.svg')
-  print(imgs)
   arrows = image_mosaic(c(image_read_svg(imgs[1]), 
-                           image_read_svg(imgs[2]),
-                           image_read_svg(imgs[3])))
+                          image_read_svg(imgs[2]),
+                          image_read_svg(imgs[3])))
   arrows = image_transparent(arrows, 'white')
   img2 <- image_read_svg('www/magick_imgs/bot_small.svg')
   img3 <- image_read_svg('www/magick_imgs/Background_3.svg')
@@ -85,12 +84,11 @@ create_plot<- function (percents) {
 
 add_discharge_percents = function(percents, t_image){
   image= t_image
-  image = image_annotate(image, percent(as.numeric(percents[1])), font = page_font, size = 24, gravity = "northeast", location = "+60+285") 
-  image = image_annotate(image, percent(as.numeric(percents[2])),  font = page_font, size = 24, gravity = "northeast",  location = "+60+427") 
-  image = image_annotate(image, percent(as.numeric(percents[3])), font = page_font, size = 24, gravity = "northeast", location = "+60+570") 
+  image = image_annotate(image, percent(as.numeric(percents[1])), font = 'Trebuchet', size = 24, gravity = "northeast", location = "+60+285") 
+  image = image_annotate(image, percent(as.numeric(percents[2])),  font = 'Trebuchet', size = 24, gravity = "northeast",  location = "+60+427") 
+  image = image_annotate(image, percent(as.numeric(percents[3])), font = 'Trebuchet', size = 24, gravity = "northeast", location = "+60+570") 
   return (image)
 }
-
 
 log_plot_gen = function (lolli_df){
   
@@ -151,19 +149,21 @@ create_log_plot <- function(events,top = TRUE){
     lolli_df$lolli_y =  rev(lolli_df$lolli_y )
   }
   return (log_plot_gen(lolli_df))
-  
+
 }
+
+
 
 
 create_logarithmic_ggplot <- function(params, image){
   i <- 1
   offsets <- c("+139+175", "+139+522")
   top_plot <- image_graph(width = 587, height = 210, res = 96)
-    print(create_log_plot(params$event_data[1:3,]))
+  print(create_log_plot(params$event_data[1:3,], TRUE))
   dev.off()
   image <- image_composite(image, top_plot, offset = "+139+175")
   bot_plot <- image_graph(width = 587, height = 210, res = 96)
-  print(create_log_plot(params$event_data[4:6,]))
+  print(create_log_plot(params$event_data[4:6,], FALSE))
   dev.off()
   image <- image_composite(image, bot_plot, offset = "+139+522")
   
@@ -179,15 +179,15 @@ create_waffle_and_caption = function(input_row){
   type = as.character(input_row[[1]])
   av = input_row[[2]]
   plot <- image_graph(width = 90, height = 90, res = 72)
-    print(create_waffle_plot(value))
+  print(create_waffle_plot(value))
   dev.off()
   white_left = image_blank(width = 53, height= 90, color = "none")
   white_right = image_blank(width = 53, height= 90, color = "none")
   plot = image_append(c(white_left, plot, white_right))
   text = image_blank(width = 196, height= 60, color = "none")
-  text = image_annotate(text, type, font = page_font, size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
-  text = image_annotate(text, av, font = page_font, style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862" )
-  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = page_font, size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
+  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
+  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862" )
+  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
   plot2 = image_append(c(plot, text), stack = TRUE)
   return (plot2)
 }
@@ -200,25 +200,23 @@ get_bar_img <- function(value) {
   ), ".png", sep = ""))
 }
 create_bar_and_caption = function(input_row){
-  print(input_row)
   value = as.numeric(input_row[[3]])
   type = as.character(input_row[[1]])
   av = input_row[[2]]
-
   plot <- image_read(get_bar_img(value))
   plot <- image_scale(plot,"90x90")
   white_left = image_blank(width = 53, height= 90, color = "none")
   white_right = image_blank(width = 53, height= 90, color = "none")
   plot = image_append(c(white_left, plot, white_right))
   text = image_blank(width = 196, height= 60, color = "none")
-  text = image_annotate(text, type, font = page_font, size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
-  text = image_annotate(text, av, font = page_font, style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862")
-  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = page_font, size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
+  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
+  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862")
+  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
   plot2 = image_append(c(plot, text), stack = TRUE)
   return (plot2)
 }
 create_waffle_ggplot <- function(params, final_image) {
-
+  
   upperplots = image_append(c(create_waffle_and_caption(params$event_data[1, ]),
                               create_waffle_and_caption(params$event_data[2, ]),
                               create_waffle_and_caption(params$event_data[3, ])
@@ -248,78 +246,43 @@ create_dot_ggplot <- function(params, final_image) {
   return(final_image)
 }
 
+
+
+
+
 add_profile <- function(params, basic_image) {
-  offset = 25
-  if(params$plot_type == 'logarithmic'){
-    offset = 0
-  }
   info_font_size = 12 
-  line_sep = 15
   temp_blank = image_blank(width = image_info(basic_image)[['width']][[1]], height= image_info(basic_image)[['height']][[1]], color = "none")
   
-  temp_blank = image_annotate(temp_blank, paste("Procedure:", params$cpt_full),  location = paste("+40+",50 + line_sep * 2 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  
-  temp_blank = image_annotate(temp_blank, paste("Patient Age:",params$age),  location = paste("+40+",50 + line_sep * 3.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  
-  temp_blank = image_annotate(temp_blank, paste("ASA Class:", patient_levels[[params$asa_level]]),  location = paste("+600+",50 + line_sep * 4.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, "Procedure:",  location = "+300+55", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, params$cpt_full,  location = "+300+70", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862")
   
   
-  temp_blank = image_annotate(temp_blank, paste("Functional Status:",functional_levels[[params$functional_level]]),  location = paste("+330+",50 + line_sep * 4.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, "Patient Age:",  location = "+175+55", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, params$age,  location = "+175+70", font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
-  temp_blank = image_annotate(temp_blank, paste("Surgeon Specialty:",params$specialty),  location = paste("+330+",50 + line_sep * 3.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  
-  emergency = "Non-Emergency"
-  if(params$emergency == "1"){
-    emergency = "Emergency"
-  }
-  temp_blank = image_annotate(temp_blank, paste("Emergency Case:",emergency),  location = paste("+40+",50 + line_sep * 4.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  
-  in_out = "Inpatient"
-  if(params$in_out_patient == "0"){
-    in_out = "Outpatient"
-  }
-  temp_blank = image_annotate(temp_blank, paste("In/Out Patient:",in_out),  location = paste("+600+",50 + line_sep * 3.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  
-  basic_image = image_composite(basic_image, temp_blank)
-  return(basic_image)
-}
+  temp_blank = image_annotate(temp_blank, "ASA Class:",  location = paste("+175+",55 + 15 * 2, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, patient_levels[[params$asa_level]],  location = paste("+175+",55 + 15 * 3, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
 
-
-
-add_profile1 <- function(params, basic_image) {
-  info_font_size = 10     
-  temp_blank = image_blank(width = image_info(basic_image)[['width']][[1]], height= image_info(basic_image)[['height']][[1]], color = "none")
+  temp_blank = image_annotate(temp_blank, "Functional Status:",  location = paste("+175+",55 + 15 * 4, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, functional_levels[[params$functional_level]],  location = paste("+175+",55 + 15 * 5, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
-  temp_blank = image_annotate(temp_blank, "Procedure:",  location = "+545+50", font = page_font, style = "oblique", size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  temp_blank = image_annotate(temp_blank, params$cpt_full,  location = "+50+50", font = page_font, style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862")
-  
-  
-  temp_blank = image_annotate(temp_blank, "Patient Age:",  location = paste("+545+",50 + 13 * 1, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  temp_blank = image_annotate(temp_blank, params$age,  location = paste("+50+",50 + 13 * 1, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
-  
-  temp_blank = image_annotate(temp_blank, "ASA Class:",  location = paste("+545+",50 + 13 * 2, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  temp_blank = image_annotate(temp_blank, patient_levels[[params$asa_level]],  location = paste("+50+",50 + 13 * 2, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
-  
-  
-  temp_blank = image_annotate(temp_blank, "Functional Status:",  location = paste("+545+",50 + 13 * 3, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  temp_blank = image_annotate(temp_blank, functional_levels[[params$functional_level]],  location = paste("+50+",50 + 13 * 3, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
-  
-  temp_blank = image_annotate(temp_blank, "Surgeon Specialty:",  location = paste("+545+",50 + 13 * 4, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  temp_blank = image_annotate(temp_blank, params$specialty,  location = paste("+50+",50 + 13 * 4, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, "Surgeon Specialty:",  location = paste("+50+",55 + 15 * 0, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, params$specialty,  location = paste("+50+",55 + 15 * 1, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
   emergency = "Non-Emergancy"
   if(params$emergency == "1"){
     emergency = "Emergency"
   }
-  temp_blank = image_annotate(temp_blank, "Emergancy Case:",  location = paste("+545+",50 + 13 * 5, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  temp_blank = image_annotate(temp_blank, emergency,  location = paste("+50+",50 + 13 * 5, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, "Emergancy Case:",  location = paste("+50+",55 + 15 * 2, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, emergency,  location = paste("+50+",55 + 15 * 3, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
   in_out = "Inpatient"
   if(params$in_out_patient == "0"){
     in_out = "Outpatient"
   }
-  temp_blank = image_annotate(temp_blank, "In/Out Patient:",  location = paste("+545+",50 + 13 * 6, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  temp_blank = image_annotate(temp_blank, in_out,  location = paste("+50+",50 + 13 * 6, sep=""), font = page_font, style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, "In/Out Patient:",  location = paste("+50+",55 + 15 * 4, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
+  temp_blank = image_annotate(temp_blank, in_out,  location = paste("+50+",55 + 15 * 5, sep=""), font = 'Trebuchet', style = "oblique", size = info_font_size, gravity = "northeast", color = "#1b1862") 
   
   basic_image = image_composite(basic_image, temp_blank)
   return(basic_image)
@@ -332,35 +295,30 @@ generate_final_image <- function(params) {
   plot_function <- plot_function_dict[[params$plot_type]]
   basic_image <- generate_basic_image(params)
   final_image <- plot_function(params, basic_image)
-  print(basic_image)
   return(final_image)
 }
 
-check_location <- function(msg) {
-  print(msg)
-}
+
 
 generate_basic_image <- function(params){
   #start with the background (log background vs dot and bar background)
-  print("ok")
-  #log_event("Hello Magick")
   if(params$plot_type == 'logarithmic'){
     basic_image <- image_read_svg('www/magick_imgs/Background_2.svg')
   }
   else {
     basic_image <- image_read_svg('www/magick_imgs/Background_1.svg')
   } 
-  #log_event("Magick successfully used")
+  
   #add the appropriately sized arrows to the image
   basic_image <- image_composite(basic_image, image_read_svg(params$top_arrow))
   basic_image <- image_composite(basic_image, image_read_svg(params$middle_arrow))
   basic_image <- image_composite(basic_image, image_read_svg(params$bot_arrow))
-  check_location('checkcheckcheck')
+  
   #add the discharge destination risk scores
   temp_blank = image_blank(width = image_info(basic_image)[['width']][[1]], height= image_info(basic_image)[['height']][[1]], color = "none")
-  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_home, 1), nsmall = 1), "%", sep = ""),  font = page_font, size = 24,location = "+890+290")
-  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_readmit, 1), nsmall = 1), "%", sep = ""), font = page_font, size = 24, location = "+890+433") 
-  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_death, 1), nsmall = 1), "%", sep = ""),  font = page_font, size = 24, location = "+890+576")
+  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_home, 1), nsmall = 1), "%", sep = ""),  font = 'Trebuchet', size = 24,location = "+890+290")
+  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_readmit, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 24, location = "+890+433") 
+  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_death, 1), nsmall = 1), "%", sep = ""),  font = 'Trebuchet', size = 24, location = "+890+576")
   basic_image = image_composite(basic_image, temp_blank)
   
   #add the patient information to top right of image
@@ -372,7 +330,6 @@ generate_basic_image <- function(params){
   
   return(basic_image)
 }
-
 
 create_all_dot_plots <- function (final_img, input_percents) {
   i <- 1
@@ -393,7 +350,6 @@ create_param_list <-
            destination_vals,
            risk_inputs,
            waffle_func) {
-    print(risk_inputs)
     arrow_cuttoffs <- c(0.05, 0.25, 0.5, 0.75)
     locations <- c('top', 'middle', 'bot')
     input_df$V3 = input_df$V3 * 100

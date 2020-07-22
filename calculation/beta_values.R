@@ -1,12 +1,13 @@
-library(readxl)
-library(tidyverse)
-library(hash)
+
+
 beta_values <- read.table("calculation/2020-01-07Beta100.csv",  sep = ",", header = TRUE)
 cpt_wru <- read_excel("calculation/2019-11-19 NSQIP CPT Rates.xlsx")
 cpt_wru <- cpt_wru[cpt_wru$CPT %in% c(55866,38571,50543,52234,52235,52240), ]
 spec_list = as.character(beta_values[beta_values$Variable == "SURGSPEC", ]$ClassVal0)
 over_65 = read_csv("calculation/over_65_risk.csv")
 under_65 = read_csv("calculation/under_65_risk.csv")
+
+
 format_inputs = function(cpt, age, asa_class, emergency, fn_status, in_out, spec, risk){
   data_vals = cpt_wru %>% filter(CPT == cpt)
   wRVU = data_vals$AMAWorkRVU[[1]]
@@ -54,18 +55,14 @@ compare_chance = function(risk, value, cpt, age){
   risk_val = data_vals[paste(risk, "Rate", sep = "")][[1]][1]
   subset = NULL
   if(age > 65){
-    over_65["means"] = over_65["means2"]
-    over_65["sds"] = over_65["sds2"]
     subset = over_65[over_65$cpts == cpt & over_65$risk == risk,]
-
+    subset$sds = subset$sds2
+    subset$means = subset$means2
+    
   }else{
     subset = under_65[under_65$cpts == cpt & under_65$risk == risk,]
   }
-  print("MEAN")
-  print(risk)
-  print(subset$means[1])
-  print(2*as.numeric(subset$sds[1]) + as.numeric(subset$means[1]))
-  print(as.numeric(subset$means[1]) - 2*as.numeric(subset$sds[1]))
+
   if (as.numeric(value) > (2*as.numeric(subset$sds[1]) + as.numeric(subset$means[1]))){
     return ("Above Average")
   }else if (as.numeric(value) <(as.numeric(subset$means[1]) - 2*as.numeric(subset$sds[1]))){
@@ -108,6 +105,8 @@ make_discharge_list = function(cpt, age, asa_class, emergency, fn_status, in_out
   tot = 0
   death = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'Death30Day'))
   not_home = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'NotHome'))
-  events = c((1-not_home), not_home-death , death)
+  unplanned_readmission = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'Unplannedreadmission'))
+  #Vector of Discharges (home, rehab, and death)
+  events = c((1-not_home-unplanned_readmission), (not_home + unplanned_readmission -death) , death)
   return (events)
 }
