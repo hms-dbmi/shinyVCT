@@ -1,4 +1,4 @@
-output$pageStub <- renderUI(tagList(
+graph_view <- renderUI(tagList(
 
 
   #column page

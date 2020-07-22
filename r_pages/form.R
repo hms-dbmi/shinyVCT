@@ -1,4 +1,4 @@
-output$pageStub <- renderUI(tagList(fluidRow(
+form <- renderUI(tagList(fluidRow(
   column(
     12,
     column(
@@ -60,16 +60,65 @@ output$pageStub <- renderUI(tagList(fluidRow(
     ),
 
     column(12, br(), br(), br(), br(), br(), br(),br(),br() ),
-    column(6, align = "center", div(tags$a(
-      h4("Back",  class = "btn btn-default btn-secondary action-button",
-         style = "fontweight:600"),
-      href = "?home"
-    ))),
-    column(6, align = "center", div(id = "to_user", tags$a(
-      h4("Next",  class = "btn btn-default btn-info action-button",
-         style = "fontweight:600"),
-      href = "?complications_single_col"
-    ))),
+    column(6, align = "center", div(
+      
+      actionButton("form_home_page", "Back")
+    )),
+    column(6, align = "center", div(id = "to_user", actionButton("form_complications_page", "Next"))),
   ),
   
 )))
+
+observe({
+  if (is.null(input$asa_status) ||
+      input$asa_status == 0 ||
+      input$surg_spec == 0) {
+    shinyjs::hideElement(id = "to_user")
+  }
+  else{
+    shinyjs::showElement(id = "to_user")
+  }
+})
+
+observeEvent(input$form_complications_page, {
+  t_hash = risk_inputs()
+  t_hash[["age"]] = input$age
+  t_hash[["asa"]] = input$asa_status
+  t_hash[["emer"]] = input$em_case
+  t_hash[["func"]] = input$func_status
+  t_hash[["inout"]] = input$oper
+  t_hash[["spec"]] = input$surg_spec
+  risk_inputs(t_hash)
+  print(risk_inputs())
+  if (is.null(risk_inputs()[["cpt"]]) ||
+      is.null(risk_inputs()[["asa"]])) {
+      output$pageStub <- error
+  }else{
+    output$pageStub <- complications
+  }
+  events_df(make_risk_df(
+    risk_inputs()[["cpt"]],
+    risk_inputs()[["age"]],
+    risk_inputs()[["asa"]],
+    risk_inputs()[["emer"]],
+    risk_inputs()[["func"]],
+    risk_inputs()[["inout"]],
+    risk_inputs()[["spec"]]
+  ))
+  discharge_data(make_discharge_list(
+    risk_inputs()[["cpt"]],
+    risk_inputs()[["age"]],
+    risk_inputs()[["asa"]],
+    risk_inputs()[["emer"]],
+    risk_inputs()[["func"]],
+    risk_inputs()[["inout"]],
+    risk_inputs()[["spec"]]
+  ))
+  print(discharge_data)
+  chosen_risk(as.vector(events_df()[seq(4, nrow(events_df())),][['V1']]))
+  high_risk(as.vector(events_df()[seq(1, 3),][['V1']]))
+  
+})
+observeEvent(input$form_home_page, {
+  output$pageStub <- home
+})

@@ -1,12 +1,13 @@
-library(readxl)
-library(tidyverse)
-library(hash)
+
+
 beta_values <- read.table("calculation/2020-01-07Beta100.csv",  sep = ",", header = TRUE)
 cpt_wru <- read_excel("calculation/2019-11-19 NSQIP CPT Rates.xlsx")
 cpt_wru <- cpt_wru[cpt_wru$CPT %in% c(55866,38571,50543,52234,52235,52240), ]
 spec_list = as.character(beta_values[beta_values$Variable == "SURGSPEC", ]$ClassVal0)
 over_65 = read_csv("calculation/over_65_risk.csv")
 under_65 = read_csv("calculation/under_65_risk.csv")
+
+
 format_inputs = function(cpt, age, asa_class, emergency, fn_status, in_out, spec, risk){
   data_vals = cpt_wru %>% filter(CPT == cpt)
   wRVU = data_vals$AMAWorkRVU[[1]]

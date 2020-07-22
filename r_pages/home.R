@@ -1,4 +1,4 @@
-output$pageStub <- renderUI(tagList(fluidRow(
+home <- renderUI(tagList(fluidRow(
     column(12, align = "center", div(style=  "padding:5px;", tags$h4("Please Enter Procedure By Name or CPT Code"))),
     
     column(
@@ -15,9 +15,27 @@ output$pageStub <- renderUI(tagList(fluidRow(
       )),
     column(12, align = "center",
            shinyjs::hidden(div(
-             id = "to_form", tags$a(
-               h4("Next",  class = "btn btn-default btn-info action-button",
-                  style = "fontweight:600"),
-               href = "?form"
-             ) )))
+             id = "to_form",   actionButton("home_form_page", "Next")
+            )))
   )))
+
+observe({
+  if (is.null(input$procedure) ||
+      input$procedure == 0) {
+    shinyjs::hideElement(id = "to_form")
+  }
+  else{
+    print(input$procedure)
+    shinyjs::showElement(id = "to_form")
+  }
+})
+
+observeEvent(input$home_form_page, {
+  if (!is.null(input$procedure) && input$procedure != 0) {
+    t_hash = risk_inputs()
+    t_hash[['cpt']] = input$procedure
+    risk_inputs(t_hash)
+    print(risk_inputs())
+  }
+  output$pageStub <- form
+})

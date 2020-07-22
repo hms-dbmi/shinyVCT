@@ -5,11 +5,11 @@ library(shinyjs)
 library(magick)
 library(shinycssloaders)
 library(rsconnect)
-
+library(readxl)
+library(tidyverse)
+library(hash)
 source("calculation/beta_values.R")
 source("img_functions.R")
-
-
 
 # put a message in console or server log; note this happens only when the app is started!
 cat("uiStub application started...\n")
@@ -89,37 +89,34 @@ valid_specialities =  list(
   "Vascular" = "Vascular"
 )
 
-#all inputs required to create a Risk Dataframe
-risk_inputs = hash()
-risk_inputs[["cpt"]] = NULL
-risk_inputs[["age"]] = NULL
-risk_inputs[["asa"]] = NULL
-risk_inputs[["func"]] = NULL
-risk_inputs[["inout"]] = NULL
-risk_inputs[["emer"]] = NULL
-risk_inputs[["spec"]] = NULL
-
-
-
 
 #the bar_strength values
 bar_strength_cutoffs <- c(0, .01, .10, .20, .30, .50)
-
-#An inital df for all the events
-events_df = NULL
-chosen_risk  = NULL
-high_risk = NULL
-selected_events_df = NULL
-discharge_data = NULL
-
 
 
 addline_format <- function(x, ...) {
   gsub('\\s', '\n', x)
 }
 
-#
+
 server <- function(input, output, session) {
+  risk_inputs <- reactiveVal({
+    risk_inputs = hash()
+    risk_inputs[["cpt"]] = NULL
+    risk_inputs[["age"]] = NULL
+    risk_inputs[["asa"]] = NULL
+    risk_inputs[["func"]] = NULL
+    risk_inputs[["inout"]] = NULL
+    risk_inputs[["emer"]] = NULL
+    risk_inputs[["spec"]] = NULL
+    risk_inputs
+  })
+  events_df = reactiveVal({0})
+  chosen_risk  = reactiveVal({0})
+  high_risk = reactiveVal({0})
+  selected_events_df = reactiveVal({0})
+  discharge_data = reactiveVal({0})
+  
   cat("Session started.\n") # this prints when a session starts
   
   
@@ -136,7 +133,7 @@ server <- function(input, output, session) {
         fluidRow(
           column(12,
                  uiOutput("pageStub"))
-        ), )))
+        ),)))
   
   
   
@@ -146,200 +143,89 @@ server <- function(input, output, session) {
     "r_pages/graph_view.R",
     "r_pages/home.R",
     "r_pages/form.R",
-    "r_pages/complications_single_col.R"
+    "r_pages/complications_single_col.R",
+    "r_pages/error.R"
+    
   )
-  
-  
-  fname = isolate(session$clientData$url_search)       # isolate() deals with reactive context
-  # blank means home page
-  if (nchar(fname) == 0) {
-    fname = "?home"
-  }
-  fname = paste0("r_pages/", substr(fname, 2, nchar(fname)), ".R") # remove leading "?", add ".R"
-  # print the URL for this session
-  cat(paste0("Session filename: ", fname, ".\n"))
-  
-  if (fname == "r_pages/graph_view.R") {
-    if (is.null(risk_inputs[["cpt"]]) || is.null(risk_inputs[["asa"]])) {
-      fname = "?home"
-    }
+  for (x in validFiles) {
+    source(x, local = TRUE)
   }
   
-  if (fname == "r_pages/complications_single_col.R") {
-    if (is.null(risk_inputs[["cpt"]]) || is.null(risk_inputs[["asa"]])) {
-      fname = "?home"
-    } else{
-      events_df <<- make_risk_df(
-        risk_inputs[["cpt"]],
-        risk_inputs[["age"]],
-        risk_inputs[["asa"]],
-        risk_inputs[["emer"]],
-        risk_inputs[["func"]],
-        risk_inputs[["inout"]],
-        risk_inputs[["spec"]]
-      )
-      discharge_data <<- make_discharge_list(
-        risk_inputs[["cpt"]],
-        risk_inputs[["age"]],
-        risk_inputs[["asa"]],
-        risk_inputs[["emer"]],
-        risk_inputs[["func"]],
-        risk_inputs[["inout"]],
-        risk_inputs[["spec"]]
-      )
-      print(discharge_data)
-      chosen_risk  <<-
-        as.vector(events_df[seq(4, nrow(events_df)), ][['V1']])
-      high_risk <<- as.vector(events_df[seq(1, 3), ][['V1']])
-    }
-  }
-  
+
+  output$pageStub <- home
   # is that one of our files?
-  if (!fname %in% validFiles) {
-    output$pageStub <-
-      renderUI(tagList(# 404 if no file with that name
-        fluidRow(column(
-          12,
-          HTML(
-            "<h2>404 Not Found Error:</h2><p>That URL doesn't exist. Use the",
-            "menu above to navigate to the page you were looking for.</p>"
-          ),
-          column(12, align = "center", div(
-            id = "to_graph", tags$a(
-              h4("Return to Home",  class = "btn btn-default btn-info",
-                 style = "fontweight:600"),
-              href = "?home"
-            )
-          )
-          )
-        ))))
-    return()    # to prevent a "file not found" error on the next line after a 404 error
-  }
-  source(fname, local = TRUE)
   
-
+  
+  
   output$dot <- renderImage({
-
-    params = create_param_list(selected_events_df,
-                      discharge_data,
-                      risk_inputs,
-                      "waffle"
-    )
+    params = create_param_list(selected_events_df(),
+                               discharge_data(),
+                               risk_inputs(),
+                               "waffle")
     final_plot <- generate_final_image(params)
-      tmpfile <- final_plot %>%
-      image_write(tempfile(fileext='svg'), format = 'svg')
+    tmpfile <- final_plot %>%
+      image_write(tempfile(fileext = 'svg'), format = 'svg')
     
     # Return a list
     list(
-      src = tmpfile, contentType = "image/svg+xml",
+      src = tmpfile,
+      contentType = "image/svg+xml",
       width = "100%",
       height = "auto"
     )
   })
   output$log <- renderImage({
-    params = create_param_list(selected_events_df,
-                               discharge_data,
-                               risk_inputs,
-                               "logarithmic"
-    )
+    params = create_param_list(selected_events_df(),
+                               discharge_data(),
+                               risk_inputs(),
+                               "logarithmic")
     final_plot <- generate_final_image(params)
     
     tmpfile <- final_plot %>%
-      image_write(tempfile(fileext='svg'), format = 'svg')
+      image_write(tempfile(fileext = 'svg'), format = 'svg')
     
     # Return a list
     list(
-      src = tmpfile, contentType = "image/svg+xml",
+      src = tmpfile,
+      contentType = "image/svg+xml",
       
       width = "100%",
       height = "auto"
     )
   })
   output$bar <- renderImage({
-    params = create_param_list(selected_events_df,
-                               discharge_data,
-                               risk_inputs,
-                               "bar"
-    )
+    params = create_param_list(selected_events_df(),
+                               discharge_data(),
+                               risk_inputs(),
+                               "bar")
     final_plot <- generate_final_image(params)
     
     tmpfile <- final_plot %>%
-      image_write(tempfile(fileext='svg'), format = 'svg')
+      image_write(tempfile(fileext = 'svg'), format = 'svg')
     
     # Return a list
     list(
-      src = tmpfile, contentType = "image/svg+xml",
+      src = tmpfile,
+      contentType = "image/svg+xml",
       
       width = "100%",
       height = "auto"
     )
   })
-  observe({
-    if (is.null(input$procedure)||
-        input$procedure == 0) {
-      shinyjs::hideElement(id = "to_form")
-      
-    }
-    else{
-      shinyjs::showElement(id = "to_form")
-    }
-  })
-  observe({
-    if (is.null(input$asa_status) ||
-        input$asa_status == 0 ||
-        input$surg_spec == 0) {
-      shinyjs::hideElement(id = "to_user")
-    }
-    else{
-      shinyjs::showElement(id = "to_user")
-    }
-  })
+
+
   
-  observe({
-    x = input$user_chosen_risk_1
-    y = input$user_chosen_risk_2
-    if ((length(x) + length(y)) == 3 ||
-        (length(x) + length(y)) == 0) {
-      inputs_of_interest = high_risk
-      if (length(x) + length(y) == 3) {
-        for (index in x) {
-          inputs_of_interest = c(inputs_of_interest, chosen_risk[as.numeric(index)])
-        }
-      } else{
-        inputs_of_interest = c(inputs_of_interest,
-                               chosen_risk[1],
-                               chosen_risk[2],
-                               chosen_risk[3])
-      }
-      selected_events_df <<-
-        events_df[events_df$V1 %in% inputs_of_interest, ]
-      shinyjs::showElement(id = "to_graph")
-    } else{
-      shinyjs::hideElement(id = "to_graph")
-    }
-  })
-  
-  observe({
-    if (!is.null(input$procedure)) {
-      risk_inputs[["cpt"]] <<- input$procedure
-    }
-    if (!is.null(input$asa_status) && input$asa_status != 0) {
-      risk_inputs[["age"]] <<- input$age
-      risk_inputs[["asa"]] <<- input$asa_status
-      risk_inputs[["func"]] <<- input$func_status
-      risk_inputs[["inout"]] <<- input$oper
-      risk_inputs[["emer"]] <<- input$em_case
-      risk_inputs[["spec"]] <<- input$surg_spec
-    }
-  })
-  
+
   output$downloadDot <- downloadHandler(
     filename = "rendered_report.pdf",
     content = function(file) {
-      res <- image_write(image_convert(generate_final_image(create_param_list(selected_events_df,
-                                                                              discharge_data,
-                                                                              risk_inputs,
-                                                                              "waffle")), "PDF"), "hold.pdf")
+      res <-
+        image_write(image_convert(generate_final_image(
+          create_param_list(selected_events_df(),
+                            discharge_data(),
+                            risk_inputs(),
+                            "waffle")
+        ), "PDF"), "hold.pdf")
       
       file.copy(res, file)
     }
@@ -347,10 +233,15 @@ server <- function(input, output, session) {
   output$downloadLog <- downloadHandler(
     filename = "rendered_report.pdf",
     content = function(file) {
-      res <- image_write(image_convert(generate_final_image(create_param_list(selected_events_df,
-                                                                              discharge_data,
-                                                                              risk_inputs,
-                                                                              "logarithmic")), "PDF"), "hold.pdf")
+      res <-
+        image_write(image_convert(generate_final_image(
+          create_param_list(
+            selected_events_df(),
+            discharge_data(),
+            risk_inputs(),
+            "logarithmic"
+          )
+        ), "PDF"), "hold.pdf")
       
       file.copy(res, file)
     }
@@ -358,11 +249,14 @@ server <- function(input, output, session) {
   output$downloadBar <- downloadHandler(
     filename = "rendered_report.pdf",
     content = function(file) {
-      res <- image_write(image_convert(generate_final_image(create_param_list(selected_events_df,
-                                                                              discharge_data,
-                                                                              risk_inputs,
-                                                                              "bar")), "PDF"), "hold.pdf")
-       
+      res <-
+        image_write(image_convert(generate_final_image(
+          create_param_list(selected_events_df(),
+                            discharge_data(),
+                            risk_inputs(),
+                            "bar")
+        ), "PDF"), "hold.pdf")
+      
       file.copy(res, file)
     }
   )

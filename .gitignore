@@ -37,3 +37,10 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+#Avgs
+over65.RData
+under65.RData
+avg_table.R
+fname.RData
+hold.pdf
