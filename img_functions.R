@@ -65,16 +65,16 @@ create_plot<- function (percents) {
   imgs = c()
   for (x in seq(3,1)){
     val = max(which(arrow_cuttoffs <= percents[x]), 0) +1
-    img = paste("magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
+    img = paste("www/magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
     imgs = c(imgs, img)
   }
-  img1 <- image_read_svg('magick_imgs/Background_1.svg')
+  img1 <- image_read_svg('www/magick_imgs/Background_1.svg')
   arrows = image_mosaic(c(image_read_svg(imgs[1]), 
                           image_read_svg(imgs[2]),
                           image_read_svg(imgs[3])))
   arrows = image_transparent(arrows, 'white')
-  img2 <- image_read_svg('magick_imgs/bot_small.svg')
-  img3 <- image_read_svg('magick_imgs/Background_3.svg')
+  img2 <- image_read_svg('www/magick_imgs/bot_small.svg')
+  img3 <- image_read_svg('www/magick_imgs/Background_3.svg')
   out <- image_composite(img1, arrows)
   out <- image_composite(out, img3)
   #out <- image_composite(out, fig, offset = "+190+250")
@@ -292,41 +292,55 @@ plot_function_dict <- c(create_waffle_ggplot, create_dot_ggplot, create_logarith
 names(plot_function_dict) <- c("waffle", "bar", "logarithmic")
 
 generate_final_image <- function(params) {
+  shinyjs::logjs(params)
+  
   plot_function <- plot_function_dict[[params$plot_type]]
+
   basic_image <- generate_basic_image(params)
+  shinyjs::logjs("Loaded Basic IMG")
+  
   final_image <- plot_function(params, basic_image)
+  shinyjs::logjs("Loaded Final IMG")
+  
   return(final_image)
 }
 
 
 
 generate_basic_image <- function(params){
+  
+ 
+
+  
   #start with the background (log background vs dot and bar background)
   if(params$plot_type == 'logarithmic'){
-    basic_image <- image_read_svg('magick_imgs/Background_2.svg')
+    basic_image <- image_read_svg('www/magick_imgs/Background_2.svg')
   }
   else {
-    basic_image <- image_read_svg('magick_imgs/Background_1.svg')
+    basic_image <- image_read_svg('www/magick_imgs/Background_1.svg')
   } 
+
   
   #add the appropriately sized arrows to the image
   basic_image <- image_composite(basic_image, image_read_svg(params$top_arrow))
   basic_image <- image_composite(basic_image, image_read_svg(params$middle_arrow))
   basic_image <- image_composite(basic_image, image_read_svg(params$bot_arrow))
-  
+
   #add the discharge destination risk scores
   temp_blank = image_blank(width = image_info(basic_image)[['width']][[1]], height= image_info(basic_image)[['height']][[1]], color = "none")
   temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_home, 1), nsmall = 1), "%", sep = ""),  font = 'Trebuchet', size = 24,location = "+890+290")
   temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_readmit, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 24, location = "+890+433") 
   temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_death, 1), nsmall = 1), "%", sep = ""),  font = 'Trebuchet', size = 24, location = "+890+576")
   basic_image = image_composite(basic_image, temp_blank)
-  
+
   #add the patient information to top right of image
   basic_image = add_profile(params, basic_image)
-  #insert cover over SURGERY bubble
-  cover_image <- image_read_svg('magick_imgs/Background_3.svg')
-  basic_image <- image_composite(basic_image, cover_image)
+
   
+  #insert cover over SURGERY bubble
+  cover_image <- image_read_svg('www/magick_imgs/Background_3.svg')
+  basic_image <- image_composite(basic_image, cover_image)
+
   
   return(basic_image)
 }
@@ -377,7 +391,7 @@ create_param_list <-
     locations <- c('top_', 'middle_', 'bot_')
     for (x in seq(3,1)){
       val = max(which(arrow_cuttoffs <= destination_vals[x]), 0) +1
-      arrow = paste("magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
+      arrow = paste("www/magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
       params[[paste(locations[x], "arrow", sep = "")]] <- arrow
     }
     save(params, file="fname.RData")

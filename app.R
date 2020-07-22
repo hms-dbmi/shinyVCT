@@ -8,6 +8,7 @@ library(rsconnect)
 library(readxl)
 library(tidyverse)
 library(hash)
+library(rsvg)
 source("calculation/beta_values.R")
 source("img_functions.R")
 

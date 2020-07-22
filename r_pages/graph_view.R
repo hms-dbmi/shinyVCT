@@ -116,10 +116,8 @@ output$dot <- renderImage({
                              discharge_data(),
                              risk_inputs(),
                              "waffle")
-  shinyjs::logjs(params)
   final_plot <- generate_final_image(params)
-  shinyjs::logjs(final_plot)
-  
+
   tmpfile <- final_plot %>%
     image_write(tempfile(fileext = 'svg'), format = 'svg')
   
