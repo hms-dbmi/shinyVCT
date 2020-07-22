@@ -48,11 +48,13 @@ complications <- renderUI(tagList(
   )),
   
 ))
-
+return_df = function(df){
+  return(df)
+}
 observe({
   x = input$user_chosen_risk_1
   y = input$user_chosen_risk_2
-  if (!is.null(x)) {
+  if (!is.null(events_df()) && events_df() != 0 ) {
     if ((length(x) + length(y)) == 3 ||
         (length(x) + length(y)) == 0) {
       inputs_of_interest = high_risk()
@@ -66,7 +68,12 @@ observe({
                                chosen_risk()[2],
                                chosen_risk()[3])
       }
-      selected_events_df(events_df()[events_df()$V1 %in% inputs_of_interest, ])
+      print("TEMP")
+      t_df = events_df()[events_df()$V1 %in% inputs_of_interest, ]
+      print(t_df)
+      print(selected_events_df())
+      selected_events_df(return_df(t_df))
+      
       shinyjs::showElement(id = "to_graph")
     } else{
       shinyjs::hideElement(id = "to_graph")

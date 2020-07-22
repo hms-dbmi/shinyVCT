@@ -35,7 +35,7 @@ observeEvent(input$home_form_page, {
     t_hash = risk_inputs()
     t_hash[['cpt']] = input$procedure
     risk_inputs(t_hash)
-    print(risk_inputs())
+    print(risk_inputs()[['cpt']])
   }
   output$pageStub <- form
 })

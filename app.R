@@ -47,10 +47,10 @@ ui <- fluidPage(
       <div class="collapse navbar-collapse navbar-right text-center" id="myCustomNavbar">
         <ul class="navbar-nav navbar-right navbar-nav ml-auto">
           <li class="nav-item active">
-            <a class="nav-link py-3" href="?home">Home <span class="sr-only">(current)</span></a>
+            <a class="nav-link py-3" href="?">Home <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link py-3" href="?home">About</a>
+            <a class="nav-link py-3" href="?">About</a>
           </li>
           <li class="nav-item">
             <a class="nav-link py-3" href="?">Team</a>
@@ -153,65 +153,7 @@ server <- function(input, output, session) {
   
 
   output$pageStub <- home
-  # is that one of our files?
-  
-  
-  
-  output$dot <- renderImage({
-    params = create_param_list(selected_events_df(),
-                               discharge_data(),
-                               risk_inputs(),
-                               "waffle")
-    final_plot <- generate_final_image(params)
-    tmpfile <- final_plot %>%
-      image_write(tempfile(fileext = 'svg'), format = 'svg')
-    
-    # Return a list
-    list(
-      src = tmpfile,
-      contentType = "image/svg+xml",
-      width = "100%",
-      height = "auto"
-    )
-  })
-  output$log <- renderImage({
-    params = create_param_list(selected_events_df(),
-                               discharge_data(),
-                               risk_inputs(),
-                               "logarithmic")
-    final_plot <- generate_final_image(params)
-    
-    tmpfile <- final_plot %>%
-      image_write(tempfile(fileext = 'svg'), format = 'svg')
-    
-    # Return a list
-    list(
-      src = tmpfile,
-      contentType = "image/svg+xml",
-      
-      width = "100%",
-      height = "auto"
-    )
-  })
-  output$bar <- renderImage({
-    params = create_param_list(selected_events_df(),
-                               discharge_data(),
-                               risk_inputs(),
-                               "bar")
-    final_plot <- generate_final_image(params)
-    
-    tmpfile <- final_plot %>%
-      image_write(tempfile(fileext = 'svg'), format = 'svg')
-    
-    # Return a list
-    list(
-      src = tmpfile,
-      contentType = "image/svg+xml",
-      
-      width = "100%",
-      height = "auto"
-    )
-  })
+
 
 
   

@@ -65,16 +65,16 @@ create_plot<- function (percents) {
   imgs = c()
   for (x in seq(3,1)){
     val = max(which(arrow_cuttoffs <= percents[x]), 0) +1
-    img = paste("magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
+    img = paste("www/magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
     imgs = c(imgs, img)
   }
-  img1 <- image_read_svg('magick_imgs/Background_1.svg')
+  img1 <- image_read_svg('www/magick_imgs/Background_1.svg')
   arrows = image_mosaic(c(image_read_svg(imgs[1]), 
                           image_read_svg(imgs[2]),
                           image_read_svg(imgs[3])))
   arrows = image_transparent(arrows, 'white')
-  img2 <- image_read_svg('magick_imgs/bot_small.svg')
-  img3 <- image_read_svg('magick_imgs/Background_3.svg')
+  img2 <- image_read_svg('www/magick_imgs/bot_small.svg')
+  img3 <- image_read_svg('www/magick_imgs/Background_3.svg')
   out <- image_composite(img1, arrows)
   out <- image_composite(out, img3)
   #out <- image_composite(out, fig, offset = "+190+250")
@@ -195,7 +195,7 @@ create_waffle_and_caption = function(input_row){
 
 bar_strength_cutoffs <- c(0, .01, .10, .20, .30, .50)
 get_bar_img <- function(value) {
-  return (paste("bar_imgs/bar", max(
+  return (paste("www/bar_imgs/bar", max(
     which(bar_strength_cutoffs <= value/100) - 1
   ), ".png", sep = ""))
 }
@@ -303,10 +303,10 @@ generate_final_image <- function(params) {
 generate_basic_image <- function(params){
   #start with the background (log background vs dot and bar background)
   if(params$plot_type == 'logarithmic'){
-    basic_image <- image_read_svg('magick_imgs/Background_2.svg')
+    basic_image <- image_read_svg('www/magick_imgs/Background_2.svg')
   }
   else {
-    basic_image <- image_read_svg('magick_imgs/Background_1.svg')
+    basic_image <- image_read_svg('www/magick_imgs/Background_1.svg')
   } 
   
   #add the appropriately sized arrows to the image
@@ -324,7 +324,7 @@ generate_basic_image <- function(params){
   #add the patient information to top right of image
   basic_image = add_profile(params, basic_image)
   #insert cover over SURGERY bubble
-  cover_image <- image_read_svg('magick_imgs/Background_3.svg')
+  cover_image <- image_read_svg('www/magick_imgs/Background_3.svg')
   basic_image <- image_composite(basic_image, cover_image)
   
   
@@ -377,7 +377,7 @@ create_param_list <-
     locations <- c('top_', 'middle_', 'bot_')
     for (x in seq(3,1)){
       val = max(which(arrow_cuttoffs <= destination_vals[x]), 0) +1
-      arrow = paste("magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
+      arrow = paste("www/magick_imgs/", locations[x], arrow_vals[val], ".svg", sep = "" )
       params[[paste(locations[x], "arrow", sep = "")]] <- arrow
     }
     save(params, file="fname.RData")

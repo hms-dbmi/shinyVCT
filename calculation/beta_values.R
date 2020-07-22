@@ -56,7 +56,9 @@ compare_chance = function(risk, value, cpt, age){
   subset = NULL
   if(age > 65){
     subset = over_65[over_65$cpts == cpt & over_65$risk == risk,]
-
+    subset$sds = subset$sds2
+    subset$means = subset$means2
+    
   }else{
     subset = under_65[under_65$cpts == cpt & under_65$risk == risk,]
   }
