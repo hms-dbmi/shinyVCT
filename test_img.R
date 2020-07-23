@@ -1,0 +1,10 @@
+setwd("/home/thomas/Documents/Project/finalVCT/clone/shinyVCT/")
+source("img_functions.R")
+library(magick)
+library(ggplot2)
+load("fname.RData")
+print(params)
+#params[['plot_type']] = 'logarithmic'
+hold <- generate_final_image(params)
+print(hold)
+image_write(hold, 'test.png')
