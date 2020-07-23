@@ -26,7 +26,7 @@ graph_view <- renderUI(tagList(#column page
           fluidRow(
             style = "overflow-y: auto;",
             column(6, align = "center", div(
-              actionButton("graph_complications_page", "Back")
+              actionButton("graph_complications_page1", "Back")
             )),
             column(
               6,
@@ -57,7 +57,7 @@ graph_view <- renderUI(tagList(#column page
           fluidRow(
             style = "overflow-y: auto;",
             column(6, align = "center", div(
-              actionButton("graph_complications_page", "Back")
+              actionButton("graph_complications_page2", "Back")
             )),
             column(
               6,
@@ -86,7 +86,7 @@ graph_view <- renderUI(tagList(#column page
           fluidRow(
             style = "overflow-y: auto;",
             column(6, align = "center", div(
-              actionButton("graph_complications_page", "Back")
+              actionButton("graph_complications_page3", "Back")
             )),
             column(
               6,
@@ -169,6 +169,13 @@ output$bar <- renderImage({
 })
 
 
-observeEvent(input$graph_complications_page, {
+
+observeEvent(input$graph_complications_page1, {
+  output$pageStub <- complications
+})
+observeEvent(input$graph_complications_page2, {
+  output$pageStub <- complications
+})
+observeEvent(input$graph_complications_page3, {
   output$pageStub <- complications
 })

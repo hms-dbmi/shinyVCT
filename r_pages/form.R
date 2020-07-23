@@ -7,7 +7,7 @@ form <- renderUI(tagList(fluidRow(
       
       numericInput(inputId = "age",
                    h4("Enter Patient Age"),
-                   value = 18),
+                   value = risk_inputs()[["age"]]),
       br(),
       selectInput(
         inputId = "asa_status",
@@ -20,7 +20,7 @@ form <- renderUI(tagList(fluidRow(
           "ASA 4: Patient with severe systemic disease that is a constant threat to life" = 4,
           "ASA V:	A moribund patient who is not expected to survive without the operation" = 5
         ),
-        selected = 0
+        selected = risk_inputs()[["asa"]]
       ),
       selectInput(
         inputId = "func_status",
@@ -30,7 +30,7 @@ form <- renderUI(tagList(fluidRow(
           "Partially Dependent" = 2,
           "Totally Dependent" = 3
         ),
-        selected = 1
+        selected = risk_inputs()[["func"]]
       ),
       
     ),
@@ -41,13 +41,13 @@ form <- renderUI(tagList(fluidRow(
         inputId =  "surg_spec",
         h4("Surgeon Specialty"),
         choices = valid_specialities,
-        selected = 1
+        selected = risk_inputs()[["spec"]]
       ),
       selectInput(
         inputId = "em_case",
         h4("Emergency Case"),
         choices = list("Yes" = 1, "No" = 0),
-        selected = 0,
+        selected = risk_inputs()[["emer"]],
       ),
       
       
@@ -55,14 +55,14 @@ form <- renderUI(tagList(fluidRow(
         inputId ="oper",
         h4("In-/Outpatient Operation"),
         choices = list("Inpatient" = 1, "Outpatient" = 0),
-        selected = 0,
+        selected = risk_inputs()[["inout"]],
       ),
     ),
-
+    
     column(12, br(), br(), br(), br(), br(), br(),br(),br() ),
     column(6, align = "center", div(
       
-      actionButton("form_home_page", "Back")
+      actionButton( class="btn btn-warning", "form_home_page", "Back")
     )),
     column(6, align = "center", div(id = "to_user", actionButton("form_complications_page", "Next"))),
   ),
@@ -92,7 +92,7 @@ observeEvent(input$form_complications_page, {
   print(risk_inputs())
   if (is.null(risk_inputs()[["cpt"]]) ||
       is.null(risk_inputs()[["asa"]])) {
-      output$pageStub <- error
+    output$pageStub <- error
   }else{
     output$pageStub <- complications
   }

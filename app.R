@@ -103,13 +103,13 @@ addline_format <- function(x, ...) {
 server <- function(input, output, session) {
   risk_inputs <- reactiveVal({
     risk_inputs = hash()
-    risk_inputs[["cpt"]] = NULL
-    risk_inputs[["age"]] = NULL
-    risk_inputs[["asa"]] = NULL
-    risk_inputs[["func"]] = NULL
-    risk_inputs[["inout"]] = NULL
-    risk_inputs[["emer"]] = NULL
-    risk_inputs[["spec"]] = NULL
+    risk_inputs[["cpt"]] = 0
+    risk_inputs[["age"]] = 18
+    risk_inputs[["asa"]] = 0
+    risk_inputs[["func"]] = 1
+    risk_inputs[["inout"]] = 0
+    risk_inputs[["emer"]] = 0
+    risk_inputs[["spec"]] = 0
     risk_inputs
   })
   events_df = reactiveVal({0})

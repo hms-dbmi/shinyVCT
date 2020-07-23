@@ -39,12 +39,12 @@ complications <- renderUI(tagList(
              choiceValues = seq(1, length(chosen_risk())),
              width = '100%'
            ),
-         ),),
+         ), br(), br(), br()),
   column(6, align = "center", div(
     actionButton("complications_form_page", "Back")
   )),
   column(6, align = "center", div(
-    id = "complications_graph_page", actionButton("complications_graph_page", "Next")
+    id = "to_graph", actionButton("complications_graph_page", "Next")
   )),
   
 ))
@@ -68,7 +68,6 @@ observe({
                                chosen_risk()[2],
                                chosen_risk()[3])
       }
-      print("TEMP")
       t_df = events_df()[events_df()$V1 %in% inputs_of_interest, ]
       print(t_df)
       print(selected_events_df())
