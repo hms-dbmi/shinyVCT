@@ -3,8 +3,8 @@ functional_levels = c("Independent", "Partially Independent", "Totally Dependent
 names(functional_levels) = c( "1", "2","3")
 
 patient_levels = c("ASA 1: Normal healthy patient", "ASA 2: Patient with mild systemic disease", "ASA 3: Patient with severe systemic disease",
-                   "ASA 4: Patient with severe systemic disease that is a constant threat to life",
-                   "ASA V:	A moribund patient who is not expected to survive without the operation")
+                   "ASA 4: Patient with severe systemic disease.that is a constant threat to life",
+                   "ASA 5:	A moribund patient who is not expected.to survive without the operation")
 names(patient_levels) = c("1", "2", "3", "4", "5")
 
 
@@ -85,9 +85,9 @@ create_plot<- function (percents) {
 
 add_discharge_percents = function(percents, t_image){
   image= t_image
-  image = image_annotate(image, percent(as.numeric(percents[1])), font = 'Trebuchet', size = 24, gravity = "northeast", location = "+60+285") 
-  image = image_annotate(image, percent(as.numeric(percents[2])),  font = 'Trebuchet', size = 24, gravity = "northeast",  location = "+60+427") 
-  image = image_annotate(image, percent(as.numeric(percents[3])), font = 'Trebuchet', size = 24, gravity = "northeast", location = "+60+570") 
+  image = image_annotate(image, percent(as.numeric(percents[1])), font = page_font, size = 24, gravity = "northeast", location = "+60+285") 
+  image = image_annotate(image, percent(as.numeric(percents[2])),  font = page_font, size = 24, gravity = "northeast",  location = "+60+427") 
+  image = image_annotate(image, percent(as.numeric(percents[3])), font = page_font, size = 24, gravity = "northeast", location = "+60+570") 
   return (image)
 }
 
@@ -186,9 +186,9 @@ create_waffle_and_caption = function(input_row){
   white_right = image_blank(width = 53, height= 90, color = "none")
   plot = image_append(c(white_left, plot, white_right))
   text = image_blank(width = 196, height= 60, color = "none")
-  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
-  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862" )
-  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
+  text = image_annotate(text, type, font = page_font, size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
+  text = image_annotate(text, av, font = page_font, style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862" )
+  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = page_font, size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
   plot2 = image_append(c(plot, text), stack = TRUE)
   return (plot2)
 }
@@ -210,9 +210,9 @@ create_bar_and_caption = function(input_row){
   white_right = image_blank(width = 53, height= 90, color = "none")
   plot = image_append(c(white_left, plot, white_right))
   text = image_blank(width = 196, height= 60, color = "none")
-  text = image_annotate(text, type, font = 'Trebuchet', size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
-  text = image_annotate(text, av, font = 'Trebuchet', style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862")
-  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
+  text = image_annotate(text, type, font = page_font, size = 15, gravity = "center",  location = "+0-17", color = "#1b1862")
+  text = image_annotate(text, av, font = page_font, style = "oblique", size = 12, gravity = "center",  location = "+0+0", color = "#1b1862")
+  text = image_annotate(text, paste(format(round(value, 1), nsmall = 1), "%", sep = ""), font = page_font, size = 14, gravity = "center",  location = "+0+15", color = "#1b1862")
   plot2 = image_append(c(plot, text), stack = TRUE)
   return (plot2)
 }
@@ -263,8 +263,12 @@ add_profile <- function(params, basic_image) {
   
   temp_blank = image_annotate(temp_blank, paste("Patient Age:",params$age),  location = paste("+40+",50 + line_sep * 3.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
   
-  temp_blank = image_annotate(temp_blank, paste("ASA Class:", patient_levels[[params$asa_level]]),  location = paste("+600+",50 + line_sep * 4.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862") 
   
+  asa_levels = strsplit(patient_levels[[params$asa_level]], "\\.")
+  temp_blank = image_annotate(temp_blank, paste("ASA Class:", asa_levels[[1]]),  location = paste("+600+",50 + line_sep * 4.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862") 
+  if(length(asa_levels) > 1){
+    temp_blank = image_annotate(temp_blank, paste("ASA Class:", asa_levels[[2]]),  location = paste("+600+",50 + line_sep * 5.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862")
+  }
   
   temp_blank = image_annotate(temp_blank, paste("Functional Status:",functional_levels[[params$functional_level]]),  location = paste("+330+",50 + line_sep * 4.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
   
@@ -290,15 +294,15 @@ plot_function_dict <- c(create_waffle_ggplot, create_dot_ggplot, create_logarith
 names(plot_function_dict) <- c("waffle", "bar", "logarithmic")
 
 generate_final_image <- function(params) {
-  shinyjs::logjs(params)
+  #shinyjs::logjs(params)
   
   plot_function <- plot_function_dict[[params$plot_type]]
 
   basic_image <- generate_basic_image(params)
-  shinyjs::logjs("Loaded Basic IMG")
+  #shinyjs::logjs("Loaded Basic IMG")
   
   final_image <- plot_function(params, basic_image)
-  shinyjs::logjs("Loaded Final IMG")
+  #shinyjs::logjs("Loaded Final IMG")
   
   return(final_image)
 }
@@ -312,29 +316,29 @@ generate_basic_image <- function(params){
   
   #start with the background (log background vs dot and bar background)
   if(params$plot_type == 'logarithmic'){
-    basic_image <- image_read_svg('www/magick_imgs/Background_1.svg')
+    basic_image <- image_read_svg('www/magick_imgs/Background_2.svg')
   }
   else {
-    basic_image <- image_read_svg('www/magick_imgs/Background_2.svg')
+    basic_image <- image_read_svg('www/magick_imgs/Background_1.svg')
   } 
 
+  #insert cover destinations
+  blank_cover <- image_blank(width = 300, height= 500, color = "white")
+  basic_image <- image_composite(basic_image, blank_cover, offset = "+750+200")
+  cover_image <- image_read_svg('www/magick_imgs/Background_4.svg')
+  basic_image <- image_composite(basic_image, cover_image)
   
   #add the appropriately sized arrows to the image
   basic_image <- image_composite(basic_image, image_read_svg(params$top_arrow))
-  basic_image <- image_composite(basic_image, image_read_svg(params$middle_arrow))
+  #basic_image <- image_composite(basic_image, image_read_svg(params$middle_arrow))
   basic_image <- image_composite(basic_image, image_read_svg(params$bot_arrow))
-  
-  #insert cover destinations
-  blank_cover <- image_blank(width = 180, height= 450, color = "white")
-  basic_image <- image_composite(basic_image, blank_cover, offset = "+825+200")
-  cover_image <- image_read_svg('www/magick_imgs/Background_4.svg')
-  basic_image <- image_composite(basic_image, cover_image)
+
 
   #add the discharge destination risk scores
   temp_blank = image_blank(width = image_info(basic_image)[['width']][[1]], height= image_info(basic_image)[['height']][[1]], color = "none")
-  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_home, 1), nsmall = 1), "%", sep = ""),  font = 'Trebuchet', size = 24,location = "+890+290")
-  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_readmit, 1), nsmall = 1), "%", sep = ""), font = 'Trebuchet', size = 24, location = "+890+433") 
-  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_death, 1), nsmall = 1), "%", sep = ""),  font = 'Trebuchet', size = 24, location = "+890+576")
+  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_home, 1), nsmall = 1), "%", sep = ""),  font = page_font, size = 24,location = "+890+290")
+  #temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_readmit, 1), nsmall = 1), "%", sep = ""), font = page_font, size = 24, location = "+890+433") 
+  temp_blank = image_annotate(temp_blank, paste(format(round(params$destination_readmit, 1), nsmall = 1), "%", sep = ""),  font = page_font, size = 24, location = "+890+576")
   basic_image = image_composite(basic_image, temp_blank)
 
   #add the patient information to top right of image
