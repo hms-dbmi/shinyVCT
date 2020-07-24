@@ -103,11 +103,12 @@ make_risk_df = function(cpt, age, asa_class, emergency, fn_status, in_out, spec)
 
 make_discharge_list = function(cpt, age, asa_class, emergency, fn_status, in_out, spec){
   events <- c()
-  tot = 0
-  death = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'Death30Day'))
+  #tot = 0
+  #death = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'Death30Day'))
   not_home = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'NotHome'))
-  unplanned_readmission = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'Unplannedreadmission'))
+  #unplanned_readmission = calculate_risk(format_inputs(cpt, age, asa_class, emergency, fn_status, in_out, spec, 'Unplannedreadmission'))
   #Vector of Discharges (home, rehab, and death)
-  events = c((1-not_home-unplanned_readmission), (not_home + unplanned_readmission -death) , death)
+  #events = c((1-not_home-unplanned_readmission), (not_home + unplanned_readmission -death) , death)
+  events = c((1-not_home), not_home)
   return (events)
 }
