@@ -265,9 +265,9 @@ add_profile <- function(params, basic_image) {
   
   
   asa_levels = strsplit(patient_levels[[params$asa_level]], "\\.")
-  temp_blank = image_annotate(temp_blank, paste("ASA Class:", asa_levels[[1]]),  location = paste("+600+",50 + line_sep * 4.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862") 
-  if(length(asa_levels) > 1){
-    temp_blank = image_annotate(temp_blank, paste("ASA Class:", asa_levels[[2]]),  location = paste("+600+",50 + line_sep * 5.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862")
+  temp_blank = image_annotate(temp_blank, paste("ASA Class:", asa_levels[[1]][[1]]),  location = paste("+600+",50 + line_sep * 4.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862") 
+  if(length(asa_levels[[1]]) > 1){
+    temp_blank = image_annotate(temp_blank, paste("                     ", asa_levels[[1]][[2]]),  location = paste("+600+",50 + line_sep * 5.5 + offset, sep=""), font = page_font,size = info_font_size, gravity = "northwest", color = "#1b1862")
   }
   
   temp_blank = image_annotate(temp_blank, paste("Functional Status:",functional_levels[[params$functional_level]]),  location = paste("+330+",50 + line_sep * 4.5 + offset, sep=""), font = page_font, size = info_font_size, gravity = "northwest", color = "#1b1862") 
