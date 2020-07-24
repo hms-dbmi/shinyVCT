@@ -63,17 +63,17 @@ compare_chance = function(risk, value, cpt, age){
     subset = under_65[under_65$cpts == cpt & under_65$risk == risk,]
   }
 
-  if (as.numeric(value) > (2*as.numeric(subset$sds[1]) + as.numeric(subset$means[1]))){
+  #if (as.numeric(value) > (2*as.numeric(subset$sds[1]) + as.numeric(subset$means[1]))){
     return ("Above Average")
-  }else if (as.numeric(value) <(as.numeric(subset$means[1]) - 2*as.numeric(subset$sds[1]))){
+  #}else if (as.numeric(value) <(as.numeric(subset$means[1]) - 2*as.numeric(subset$sds[1]))){
     return ("Below Average")
-  }else{
+  #}else{
     return ("Average")
-  }
+  #}
 }
 
 calculate_risk(format_inputs(52235, 40, 3, 1, 3, 1, "Orthopedics", "UTI"))
-risk = c("Respiratory", "Infection", "UTI", "VTE", "Cardiac", "Renal", "Stroke")
+risk = c("Respiratory", "Infection", "UTI", "VTE", "Cardiac", "Renal", "Stroke", "Death30Day", "Unplannedreadmission")
 discharge = c("Death30Day", "NotHome")
 risk_name_dictionary = hash()
 risk_name_dictionary[["Respiratory"]] = "Respiratory Complications"
@@ -83,7 +83,8 @@ risk_name_dictionary[["VTE"]] = "Venous thromboembolism"
 risk_name_dictionary[["Cardiac"]] = "Cardiac Complications"
 risk_name_dictionary[["Renal"]] = "Renal Complications"
 risk_name_dictionary[["Stroke"]] = "Stroke Complications"
-
+risk_name_dictionary[["Death30Day"]] = "Mortality"
+risk_name_dictionary[["Unplannedreadmission"]] = "Unplanned Readmission"
 
 
 make_risk_df = function(cpt, age, asa_class, emergency, fn_status, in_out, spec){

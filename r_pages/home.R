@@ -1,23 +1,23 @@
 home <- renderUI(tagList(fluidRow(
-    column(12, align = "center", div(style=  "padding:5px;", tags$h4("Please Enter Procedure By Name or CPT Code"))),
-    
-    column(
-      12,
-      align = "left",
-      div( style = "padding-left:20%; padding-bottom:40%",
-           selectizeInput(inputId = 'procedure', label = NULL, 
-                          choices = c("Please Select Operation" = 0,valid_operations), selected = NULL,  
-                          options = list(placeholder = "Please Select Operation", 'persist' = TRUE)),
-           
-
-           
-           
-      )),
-    column(12, align = "center",
-           shinyjs::hidden(div(
-             id = "to_form",   actionButton("home_form_page", "Next")
-            )))
-  )))
+  column(12, align = "left", div(style=  "padding:5px;", tags$h4("Please Enter Procedure By Name or CPT Code"))),
+  
+  column(
+    12,
+    align = "center",
+    div( style = "padding-bottom:40%; text-align:left;  vertical-align: middle; ",
+         selectizeInput(inputId = 'procedure', label = NULL, 
+                        choices = c("Please Select Operation" = 0,valid_operations), selected = risk_inputs()[["cpt"]],  
+                        options = list(placeholder = "Please Select Operation", 'persist' = TRUE)),
+         
+         
+         
+         
+    )),
+  column(12, align = "center",
+         (div(
+           id = "to_form",   actionButton("home_form_page", "Next")
+         )))
+)))
 
 observe({
   if (is.null(input$procedure) ||

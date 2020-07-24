@@ -15,7 +15,7 @@ each_cpt = list()
 inputs = 0
 for ( cpt in cpt_wru$CPT ) {
   j = 1
-  tot = list(c(), c(), c(),c(),c(),c(),c())
+  tot = list(c(), c(), c(),c(),c(),c(),c(),c(),c())
   for (age in seq(10, 65, 5)) {
     for (asa in seq(1,4)) {
       for (emer in seq(0,1)) {
@@ -30,9 +30,6 @@ for ( cpt in cpt_wru$CPT ) {
               df = df[order(as.numeric(rownames(df))),,drop=FALSE ]["V3"]
               i = 1
               for (x in df[[1]]){
-                if(x>0.9){
-                  print(list(cpt, age, asa, emer, fn, in_out, spec))
-                }
                 tot[[i]] = c(tot[[i]], x)
                 i = i+1
               }
@@ -51,7 +48,7 @@ each_cpt2 = list()
 inputs = 0
 for ( cpt in cpt_wru$CPT ) {
   j = 1
-  tot2 = list(c(), c(), c(),c(),c(),c(),c())
+  tot2 = list(c(), c(), c(),c(),c(),c(),c(), c(), c())
   for (age in seq(65, 110, 5)) {
     for (asa in seq(1,4)) {
       for (emer in seq(0,1)) {
@@ -80,7 +77,7 @@ for ( cpt in cpt_wru$CPT ) {
 }
 save(each_cpt2, file = "over65.RData")
 
-comps = c("Respiratory", "Infection", "UTI","VTE", "Cardiac", "Renal","Stroke")
+comps = c("Respiratory", "Infection", "UTI","VTE", "Cardiac", "Renal","Stroke", "Death30Day", "Unplannedreadmission")
 sds = c()
 means = c()
 risk = c()
@@ -99,7 +96,7 @@ for ( cpt in cpt_wru$CPT ) {
 }
 under_65 <- data.frame(cpts,risk, means, sds)
 
-write.csv(under_65,"under_65_risk.csv")
+write.csv(under_65,"calculation/under_65_risk.csv")
 
 sds2 = c()
 means2 = c()
@@ -119,7 +116,7 @@ for ( cpt in cpt_wru$CPT ) {
 }
 over_65 <- data.frame(cpts,risk, means2, sds2)
 
-write.csv(over_65,"over_65_risk.csv")
+write.csv(over_65,"calculation/over_65_risk.csv")
 
 
 load("over65.RData")
